@@ -1,1 +1,6 @@
 /bin/
+*
+!*.java
+!.gitignore
+!.project
+!.classpath

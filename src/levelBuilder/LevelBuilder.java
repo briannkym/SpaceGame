@@ -43,12 +43,12 @@ public class LevelBuilder {
 		//I don't know what is going on here, it seems to do what I want it to though, which is making the game listen for key presses
 		LevelBuilder LB = new LevelBuilder();
 		w.addKeyListener(LB.new keyEventHandler());
-		
+		w.addKeyListener(cam);
 		w.setCameraStalk(cam);
 		w.start(false);
 		
 		//visual markers to see where the cursor is in comparison to something TODO this is test code
-		m.addSimpleObject(new Cursor(), 0, 0);
+		m.addSimpleObject(new Solid1(), 0, 0);
 		m.addSimpleObject(new Solid1(), 0, mapHeight-blockHeight);
 		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, mapHeight-blockHeight);
 		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, 0);
@@ -104,7 +104,7 @@ public class LevelBuilder {
 	
 	//places object on map
 	public void place(){
-		m.addSimpleObject(new Solid1(), CursorX, CursorY);//TODO need to be able to add other types of things
+		m.addSimpleObject(new Solid1(), cam.getX(), cam.getY());//TODO need to be able to add other types of things
 	}
 	
 	//removes object from map
@@ -125,20 +125,10 @@ public class LevelBuilder {
 		public void keyPressed(KeyEvent e) {
 			
 			int key = e.getKeyCode();
-
-			//move cursor in a direction
-			if (key == KeyEvent.VK_LEFT) {
-				moveCursor(-1, 0);
-			}
-			if (key == KeyEvent.VK_UP) {
-				moveCursor(0, 1);
-			}
-			if (key == KeyEvent.VK_RIGHT) {
-				moveCursor(1, 0);
-			}
-			if (key == KeyEvent.VK_DOWN) {
-				moveCursor(0, -1);
-			}
+			/*
+			 * Where the move code was.
+			 */
+			
 			//place currently selected object at cursor position
 			if (key == KeyEvent.VK_SPACE) {
 				place();
