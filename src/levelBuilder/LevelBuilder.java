@@ -9,28 +9,31 @@ import world.SimpleWorld;
 
 //TODO why were block size and cell size different in the test program, shouldn't they be the same?
 public class LevelBuilder {
-	//position of cursor
+	//position of cursor in pixels
 	static int CursorY = 20;
 	static int CursorX = 20;
-	//cell size
+	//cell size in pixels
 	static int cellWidth = 20;
 	static int cellHeight = 20;
-	//block size
+	//block size in pixels
 	static int blockWidth = 20;
 	static int blockHeight = 20;
-	//map dimensions
-	static int mapHmax = 30 * cellHeight;
-	static int mapWmax = 40 * cellWidth;
-	//window dimensions
-	static int windowHeight = 600;
-	static int windowWidth = 800;
-	//*****list of available objects
+	//map dimensions in cells
+	static int mapCellHeight = 30;
+	static int mapCellWidth = 40;
+	//map dimensions in pixels
+	static int mapHeight = mapCellHeight * cellHeight;
+	static int mapWidth = mapCellWidth * cellWidth;
+	//window dimensions in pixels
+	static int windowHeight = 400;
+	static int windowWidth = 600;
+	//TODO list of available objects
 		
 	//has init been run already
 	boolean initRun = false;//TODO save this in the level file somewhere (are key-value pairs available?)
 	
 			
-	static SimpleMap m = new SimpleMap(mapWmax, mapHmax, cellWidth, cellHeight);//TODO map dimensions should be user selectable at init
+	static SimpleMap m = new SimpleMap(mapCellWidth, mapCellHeight, cellWidth, cellHeight);//TODO map dimensions should be user selectable at init
 	static Cursor cam = new Cursor();
 	
 	public static void main(String[] args){
@@ -46,9 +49,9 @@ public class LevelBuilder {
 		
 		//visual markers to see where the cursor is in comparison to something TODO this is test code
 		m.addSimpleObject(new Cursor(), 0, 0);
-		m.addSimpleObject(new Solid1(), 0, mapHmax-blockHeight);
-		m.addSimpleObject(new Solid1(), mapWmax-blockWidth, mapHmax-blockHeight);
-		m.addSimpleObject(new Solid1(), mapWmax-blockWidth, 0);
+		m.addSimpleObject(new Solid1(), 0, mapHeight-blockHeight);
+		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, mapHeight-blockHeight);
+		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, 0);
 	}
 	
 	//loads map files
@@ -88,7 +91,7 @@ public class LevelBuilder {
 		int NewY = CursorY - blockHeight * YDirection;
 		int NewX = CursorX + blockWidth * XDirection;
 		//checks if new position is within bounds
-		if (NewY < 0 || NewX < 0 || NewY > mapHmax - blockHeight || NewX > mapWmax - blockWidth){
+		if (NewY < 0 || NewX < 0 || NewY > mapHeight - blockHeight || NewX > mapWidth - blockWidth){
 			//out of bounds, no more moving in that direction
 		}
 		else {
