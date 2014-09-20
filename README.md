@@ -1,6 +1,0 @@
-SpaceGame
-=========
-
-Test!
-
-First Push!

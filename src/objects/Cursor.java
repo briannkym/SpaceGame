@@ -35,6 +35,7 @@ public class Cursor extends SimpleObject implements KeyListener{
 
 	@Override
 	public void keyTyped(KeyEvent e) {
+		
 	}
 
 	@Override

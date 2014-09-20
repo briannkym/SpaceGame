@@ -2,16 +2,15 @@ package levelBuilder;
 
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import objects.*;
+import java.io.File;
+import java.io.FilenameFilter;
 
+import objects.*;
 import world.SimpleMap;
 import world.SimpleWorld;
 
 //TODO why were block size and cell size different in the test program, shouldn't they be the same?
 public class LevelBuilder {
-	//position of cursor in pixels
-	static int CursorY = 20;
-	static int CursorX = 20;
 	//cell size in pixels
 	static int cellWidth = 20;
 	static int cellHeight = 20;
@@ -25,19 +24,15 @@ public class LevelBuilder {
 	static int mapHeight = mapCellHeight * cellHeight;
 	static int mapWidth = mapCellWidth * cellWidth;
 	//window dimensions in pixels
-	static int windowHeight = 400;
+	static int windowHeight = 600;
 	static int windowWidth = 600;
 	//TODO list of available objects
-		
-	//has init been run already
-	boolean initRun = false;//TODO save this in the level file somewhere (are key-value pairs available?)
-	
 			
 	static SimpleMap m = new SimpleMap(mapCellWidth, mapCellHeight, cellWidth, cellHeight);//TODO map dimensions should be user selectable at init
 	static Cursor cam = new Cursor();
 	
 	public static void main(String[] args){
-		m.addSimpleObject(cam, CursorX, CursorY);
+		m.addSimpleObject(cam, 20, 20);
 		SimpleWorld w = new SimpleWorld(m, windowWidth, windowHeight, "Level Builder"); //TODO might need window dimensions to be created at time of level creation in the future
 		
 		//I don't know what is going on here, it seems to do what I want it to though, which is making the game listen for key presses
@@ -49,57 +44,71 @@ public class LevelBuilder {
 		
 		//visual markers to see where the cursor is in comparison to something TODO this is test code
 		m.addSimpleObject(new Solid1(), 0, 0);
-		m.addSimpleObject(new Solid1(), 0, mapHeight-blockHeight);
-		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, mapHeight-blockHeight);
-		m.addSimpleObject(new Solid1(), mapWidth-blockWidth, 0);
-	}
-	
-	//loads map files
-	public void load(){
-		//init will have been run if we are loading a previously made map 
-		initRun = true;
-		//TODO should make sure currently open map is closed first, and maybe ask to save
-	}
-	
-	//saves map files
-	public void save(){
+		m.addSimpleObject(new Solid1(), 0, mapHeight-cellHeight);
+		m.addSimpleObject(new Solid1(), mapWidth-cellWidth, mapHeight-cellHeight);
+		m.addSimpleObject(new Solid1(), mapWidth-cellWidth, 0);
 		
+		//Splash screen
+		//list key bindings
+	}
+	
+	//loads map file
+	public void load(){	
+		//TODO make sure currently open map is closed first, and maybe ask to save before opening a new one
+		FilenameFilter filter = new FilenameFilter() {
+		    public boolean accept(File directory, String fileName) {
+		        return fileName.endsWith(".sgs");
+		    }
+		};
+		
+		File savesFolder = new File("saves");
+		File[] saves = savesFolder.listFiles(filter);
+		if (savesFolder.exists()){
+			if (saves.length > 0){
+				String[] saveNames = savesFolder.list(filter);
+				for (int i = 0; i < saves.length; i++){
+					System.out.println(i + " " + saveNames[i]); //TODO list saves on screen
+				}
+				//TODO have user select file they want
+				//TODO load file
+			}
+			else {
+				System.out.println("No existing save files"); //TODO change to onscreen message, find out how to do that
+			}
+		}
+		else {
+			savesFolder.mkdir();
+			System.out.println("No existing save files"); //TODO change to onscreen message, find out how to do that
+		}
+	}
+	
+	//saves map file
+	public void save(){
+		FilenameFilter filter = new FilenameFilter() {
+		    public boolean accept(File directory, String fileName) {
+		        return fileName.endsWith(".sgs");
+		    }
+		};
+		
+		File savesFolder = new File("saves");
+		if (!savesFolder.exists())
+			savesFolder.mkdir();
+		File[] saves = savesFolder.listFiles(filter);
+		if (saves.length > 0){
+			String[] saveNames = savesFolder.list(filter);
+			//lists existing files
+			for (int i = 0; i < saves.length; i++){
+				System.out.println(i + " " + saveNames[i]); //TODO list saves on screen
+			}	
+		}
+		//TODO have user select file they want to save over, or a new file
+//			SimpleMapIO IOObj = new SimpleMapIO(path, );
+//			IOObj.writeMap(m);
 	}
 	
 	//initiates new map
 	public void init(){
-		//has init already been run for this map?
-		if (initRun == false){
-			initRun = true;
-			//TODO routine for selecting map dimensions, and other stuff
-			
-			
-	
-			
-		}
-		else{
-			//TODO routine for changing properties of existing map
-		}
-	}
-	
-	//method for moving cursor, called by keyEventHandler when an arrow key is pressed
-	//moves cursor by deleting old one and creating a new one at a new position
-	//XDirection and YDirection are the directions of movement for cursor
-	private void moveCursor(int XDirection, int YDirection){
-		m.removeSimpleObject(cam);
-		//new position called for by key input
-		int NewY = CursorY - blockHeight * YDirection;
-		int NewX = CursorX + blockWidth * XDirection;
-		//checks if new position is within bounds
-		if (NewY < 0 || NewX < 0 || NewY > mapHeight - blockHeight || NewX > mapWidth - blockWidth){
-			//out of bounds, no more moving in that direction
-		}
-		else {
-			//in bounds, can move in that direction
-			CursorY = NewY;
-			CursorX = NewX;
-		}
-		m.addSimpleObject(cam, CursorX, CursorY);
+		//TODO routine for selecting map dimensions, and other stuff
 	}
 	
 	//places object on map
@@ -109,7 +118,7 @@ public class LevelBuilder {
 	
 	//removes object from map
 	public void remove(){
-		m.removeSimpleSolid(CursorX / cellWidth, CursorY / cellHeight);//TODO still need to be able to remove simpleObjects
+		m.removeSimpleSolid(cam.getX() / cellWidth, cam.getY() / cellHeight);//TODO still need to be able to remove simpleObjects
 	}
 	
 	//TODO selects object type to place
@@ -125,9 +134,6 @@ public class LevelBuilder {
 		public void keyPressed(KeyEvent e) {
 			
 			int key = e.getKeyCode();
-			/*
-			 * Where the move code was.
-			 */
 			
 			//place currently selected object at cursor position
 			if (key == KeyEvent.VK_SPACE) {
@@ -150,7 +156,7 @@ public class LevelBuilder {
 				selectObjectType();
 			}
 			//initiates new map
-			if (key == KeyEvent.VK_I) {
+			if (key == KeyEvent.VK_N) {
 				init();
 			}
 		}
