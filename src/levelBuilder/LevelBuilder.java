@@ -6,7 +6,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
@@ -31,7 +30,7 @@ import world.SimpleWorldFactory;
 //TODO fix saving and loading of cursor
 //TODO after loading a map, how do I fix camera on cursor?
 //TODO why doesn't writeMap() save solids?
-public class LevelBuilder implements ActionListener{
+public class LevelBuilder{
 	//cell size in pixels
 	private static int cellWidth;
 	private static int cellHeight;
@@ -301,9 +300,9 @@ public class LevelBuilder implements ActionListener{
 		w.addKeyListener(cursor);
 		w.setCameraStalk(cursor);
 		w.start(false);
+		selectObjectTypeWindow();
 	}
 	
-	//TODO need to be able to add other types of things
 	private void placeObject(){
 		try {
 			m.addSimpleObject((SimpleObject) constructors[objectType].newInstance(), cursor.getX(), cursor.getY());
@@ -324,26 +323,33 @@ public class LevelBuilder implements ActionListener{
 	}
 	
 	//selects object type to place
-	//make this frame persistent and remove ok button
-	private void selectObjectType(){
+	private static void selectObjectTypeWindow(){
 		JPanel panel = new JPanel();
 		JPanel labels = new JPanel(new GridLayout(0,1,0,13));
 		JPanel input = new JPanel(new GridLayout(0,1,0,0));
 		JButton[] button = new JButton[constructors.length];
 		
 		String name;
+		LevelBuilder LB = new LevelBuilder();
 		for (int i = 0; i < constructors.length; i++) {
 			name = constructors[i].getName();
 			labels.add(new JLabel(name.substring(name.lastIndexOf('.') + 1, name.length()), SwingConstants.LEFT));
 			button[i] = new JButton("<--");
 			button[i].setActionCommand(Integer.toString(i));
-			button[i].addActionListener(this);
+			button[i].addActionListener(LB.new actionHandler());
 			input.add(button[i]);
 		}
 		
 		panel.add(labels, BorderLayout.WEST);
 		panel.add(input, BorderLayout.EAST);
-		JOptionPane.showMessageDialog(null, panel, "Available Objects", JOptionPane.PLAIN_MESSAGE);
+		
+		JFrame frame = new JFrame("Available Objects");
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		panel.setOpaque(true);
+		frame.setContentPane(panel);
+		frame.pack();
+		frame.setLocation(windowWidth, 0);
+		frame.setVisible(true);
 	}
 	
 	//TODO maybe put these in cursor.java?
@@ -360,17 +366,19 @@ public class LevelBuilder implements ActionListener{
 			if (key == KeyEvent.VK_R) {
 				removeObject();
 			}
-			if (key == KeyEvent.VK_O) {
-				selectObjectType();
-			}
 			if (key == KeyEvent.VK_S) {
 				save();
 			}
 		}
 	}
 	
-	public void actionPerformed(ActionEvent e) {
-	    objectType = Integer.parseInt(e.getActionCommand());
-	    System.out.println(objectType);
-	} 
+	private class actionHandler implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			objectType = Integer.parseInt(e.getActionCommand());
+		    System.out.println(objectType);
+		}
+		
+	}
 }
