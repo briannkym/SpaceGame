@@ -30,6 +30,9 @@ import world.SimpleWorldFactory;
 //TODO fix saving and loading of cursor
 //TODO after loading a map, how do I fix camera on cursor?
 //TODO why doesn't writeMap() save solids?
+//TODO I'm nervous about:
+//LevelBuilder LB = new LevelBuilder();
+//w.addKeyListener(LB.new keyEventHandler());
 public class LevelBuilder{
 	//cell size in pixels
 	private static int cellWidth;
@@ -69,7 +72,7 @@ public class LevelBuilder{
 	private static void loadResources(){		
 		//TODO load images and sounds
 		
-		//load objects in objects package and put objects in array
+		//get constructors for objects in objects folder and put them in an array
 		File objectsFolder = new File("src/objects");
 		File[] objectFiles = objectsFolder.listFiles(objectFilter);
 		constructors = new Constructor<?>[objectFiles.length];
@@ -95,7 +98,6 @@ public class LevelBuilder{
 	}
 		
 	private static void splashWindow(){
-		//TODO a background image would be cool
 		int result = JOptionPane.showOptionDialog(null, null, "Choose!", JOptionPane.DEFAULT_OPTION,
 				JOptionPane.PLAIN_MESSAGE, null, new Object[]{"New Map", "Load Existing Map"}, null);
 		if (result == 0) {
@@ -266,7 +268,6 @@ public class LevelBuilder{
 		int result = JOptionPane.showConfirmDialog(null, panel, "Map Initialization", JOptionPane.OK_CANCEL_OPTION,
 				JOptionPane.PLAIN_MESSAGE);
 		if (result == JOptionPane.OK_OPTION) {
-			//TODO could add nice stuff to make it impossible for people to enter non-integers
 			mapHeight = Integer.parseInt(mch.getText());
 			mapWidth = Integer.parseInt(mcw.getText());
 			windowHeight = Integer.parseInt(wh.getText());
@@ -278,8 +279,7 @@ public class LevelBuilder{
 			m = new SimpleMap(mapWidth, mapHeight, cellWidth, cellHeight);
 			startWorldAndMap();
 			
-			//visual markers to see where the cursor is in comparison to something
-			//TODO this is test code
+			//visual markers at edges of map to see where the cursor is in comparison to something
 			m.addSimpleObject(new Solid1(), 0, 0);
 			m.addSimpleObject(new Solid1(), 0, mapHeight * cellHeight-cellHeight);
 			m.addSimpleObject(new Solid1(), mapWidth * cellWidth-cellWidth, mapHeight * cellHeight-cellHeight);
@@ -357,7 +357,7 @@ public class LevelBuilder{
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			
+						
 			int key = e.getKeyCode();
 			
 			if (key == KeyEvent.VK_SPACE) {
