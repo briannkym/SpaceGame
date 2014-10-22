@@ -24,8 +24,6 @@ import java.util.Scanner;
 import javax.swing.*;
 
 import objects.*;
-import sprite.ColorImg;
-import sprite.Img;
 import sprite.ImgUpload;
 import world.SimpleMap;
 import world.SimpleMapIO;
@@ -39,17 +37,16 @@ import world.SimpleWorldFactory;
  * 
  * @author Mark Groeneveld
  * @author Brian Nakayama
- * @version 1.0
+ * @version 1.01
  */
 
-//TODO Instead of using getClone and SimpleWorldFactory, why not just create a constructor with an optional string argument?
-//TODO how can I remove simpleObjects based on coordinates? Create solid at that location and get the id from collision method?
-//TODO object can be placed in sub-cell spacing, but can't be removed that way
+//TODO expand object selection window to deal with many objects
+//TODO make option so updates don't happen, so moving objects stay where you put them
 public class LevelBuilder{
-	private static int cellWidth; //pixels
-	private static int cellHeight;
-	private static int mapHeight; //cells
-	private static int mapWidth;
+	public static int cellWidth; //pixels
+	public static int cellHeight;
+	public static int mapHeight; //cells
+	public static int mapWidth;
 	private static int windowHeight; //pixels
 	private static int windowWidth;
 	private static int verticalWindowPlacement = 0;
@@ -71,6 +68,7 @@ public class LevelBuilder{
 		splashWindow();
 	}
 	
+	@SuppressWarnings("unchecked")
 	private static void loadResources(){
 		FilenameFilter objectFilter = new FilenameFilter() {
 		    public boolean accept(File directory, String fileName) {
@@ -374,7 +372,12 @@ public class LevelBuilder{
 	}
 	
 	public static void placeObject(){
-		swf.addSimpleObject(id[objectType], cursor.getX(), cursor.getY(), argField.getText(), m);
+		try {
+			swf.addSimpleObject(id[objectType], cursor.getX(), cursor.getY(), argField.getText(), m);
+		}
+		catch (Exception e) {
+			JOptionPane.showMessageDialog(w, "Incorrect extra arguments for object", null, JOptionPane.PLAIN_MESSAGE);
+		}
 	}
 	
 	private static SimpleObject remover = new SimpleSolid() {
