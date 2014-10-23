@@ -43,10 +43,10 @@ import world.SimpleWorldFactory;
 //TODO expand object selection window to deal with many objects
 //TODO make option so updates don't happen, so moving objects stay where you put them
 public class LevelBuilder{
-	public static int cellWidth; //pixels
-	public static int cellHeight;
-	public static int mapHeight; //cells
-	public static int mapWidth;
+	private static int cellWidth; //pixels
+	private static int cellHeight;
+	private static int mapHeight; //cells
+	private static int mapWidth;
 	private static int windowHeight; //pixels
 	private static int windowWidth;
 	private static int verticalWindowPlacement = 0;
@@ -223,7 +223,7 @@ public class LevelBuilder{
 				else {					
 					String mapPath = "saves/" + saveName;
 					SimpleMapIO IOObj = new SimpleMapIO(mapPath, swf);
-					IOObj.openMap("in");
+					IOObj.openMap(true);
 					m = IOObj.readMap();
 					IOObj.closeMap();
 					if (m != null) {
@@ -274,7 +274,7 @@ public class LevelBuilder{
 			//temporarily removes cursor so it isn't in the save file
 			m.removeSimpleObject(cursor);
 			SimpleMapIO IOObj = new SimpleMapIO(mapPath, swf);
-			IOObj.openMap("out");
+			IOObj.openMap(false);
 			if (IOObj.writeMap(m)) {
 				JOptionPane.showMessageDialog(null, "Map Saved!", null, JOptionPane.PLAIN_MESSAGE);
 				//save extra-map configuration like window size
