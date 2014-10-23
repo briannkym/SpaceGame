@@ -30,6 +30,6 @@ public class MLearnerSolid extends SimpleSolid{
 
 	@Override
 	public int id() {
-		return 1;
+		return 7;
 	}
 }

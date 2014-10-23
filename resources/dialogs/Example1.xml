@@ -1,0 +1,19 @@
+<dialog>
+	<NPCName>Edward</NPCName>
+	<greeting>Isn't this museum beautiful?
+		<id>0</id>
+		<response>
+			<id>0</id>
+			<prerequisite>action56<prerequisite>
+			
+		</response>
+	</greeting>
+	<greeting>Its cold in here?
+		<id>1</id>
+		<response>
+			<id>0</id>
+			<prerequisite>isCold<prerequisite>
+			
+		</response>
+	</greeting>
+</dialog>
