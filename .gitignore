@@ -1,5 +1,6 @@
 /bin/
-*
+
+!/resources/*
 !*.java
 !.gitignore
 !.project

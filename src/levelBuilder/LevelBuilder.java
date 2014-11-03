@@ -23,8 +23,9 @@ import java.util.Scanner;
 
 import javax.swing.*;
 
+import desktopView.DesktopImgUpload;
+
 import objects.*;
-import sprite.ImgUpload;
 import world.SimpleMap;
 import world.SimpleMapIO;
 import world.SimpleObject;
@@ -364,7 +365,7 @@ public class LevelBuilder{
 		
 		File f = new File("resources/images/" + backgroundFileName);
 		if (f.exists())
-			w.setBGImage(ImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
+			w.setBGImage(DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
 		
 		selectObjectTypeWindow();
 		extraArgumentsWindow();
@@ -428,7 +429,7 @@ public class LevelBuilder{
 		}
 		
 		File f = new File("resources/images/splash.png");
-		final BufferedImage img = ImgUpload.getInstance(f.getParentFile()).getImg(f.getName()).getSlide();			
+		final BufferedImage img = DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()).getSlide();			
 		JPanel BGPanel = new JPanel(){
 			@Override
 			protected void paintComponent(Graphics g) {

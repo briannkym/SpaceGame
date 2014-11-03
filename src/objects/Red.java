@@ -8,8 +8,9 @@ import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import desktopView.DesktopImgUpload;
+
 import sprite.Img;
-import sprite.ImgUpload;
 import world.SimpleObject;
 import world.SimpleSolid;
 
@@ -61,14 +62,14 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	static private File f7 = new File(path + "RightRun.png");
 	static private File f8 = new File(path + "RightStand.png");
 	
-	static private Img<?>[] Running = {ImgUpload.getInstance(f1.getParentFile()).getImg(f1.getName()), 
-		ImgUpload.getInstance(f3.getParentFile()).getImg(f3.getName()), 
-		ImgUpload.getInstance(f5.getParentFile()).getImg(f5.getName()), 
-		ImgUpload.getInstance(f7.getParentFile()).getImg(f7.getName())};
-	static private Img<?>[] Standing = {ImgUpload.getInstance(f2.getParentFile()).getImg(f2.getName()), 
-		ImgUpload.getInstance(f4.getParentFile()).getImg(f4.getName()), 
-		ImgUpload.getInstance(f6.getParentFile()).getImg(f6.getName()), 
-		ImgUpload.getInstance(f8.getParentFile()).getImg(f8.getName())};
+	static private Img<?>[] Running = {DesktopImgUpload.getInstance(f1.getParentFile()).getImg(f1.getName()), 
+		DesktopImgUpload.getInstance(f3.getParentFile()).getImg(f3.getName()), 
+		DesktopImgUpload.getInstance(f5.getParentFile()).getImg(f5.getName()), 
+		DesktopImgUpload.getInstance(f7.getParentFile()).getImg(f7.getName())};
+	static private Img<?>[] Standing = {DesktopImgUpload.getInstance(f2.getParentFile()).getImg(f2.getName()), 
+		DesktopImgUpload.getInstance(f4.getParentFile()).getImg(f4.getName()), 
+		DesktopImgUpload.getInstance(f6.getParentFile()).getImg(f6.getName()), 
+		DesktopImgUpload.getInstance(f8.getParentFile()).getImg(f8.getName())};
 		
 	private boolean moving = false;
 	private int ySpeed = 0;
@@ -190,7 +191,7 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 			xDestination = this.getMap().getMapPixelWidth();
 		if (yDestination < 0)
 			yDestination = 0;
-		else if (yDestination > this.getMap().getMapPixelHeight())
+		else if (yDestination > this.getMap().mapWmax)
 			yDestination = this.getMap().getMapPixelHeight();
 		
 		x = x - this.getX();

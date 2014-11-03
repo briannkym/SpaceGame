@@ -6,8 +6,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
 
+import desktopView.ColorImg;
+
 import levelBuilder.LevelBuilder;
-import sprite.ColorImg;
 import sprite.Img;
 import world.SimpleObject;
 
