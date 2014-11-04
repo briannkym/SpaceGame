@@ -25,7 +25,7 @@ public class SpaceGame {
 		m.addSimpleObject(new testColor(), 20, 20);
 		canvas.addKeyListener(dl);
 		SimpleWorld w = new SimpleWorld(m, dc);
-		w.start(false);
+		w.start(true);
 		p.setImage(new ColorImg(0xFF000000, 16,16));
 	}
 }

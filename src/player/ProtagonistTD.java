@@ -1,26 +1,61 @@
 package player;
 
-import main.SpaceGame;
-import sprite.Img;
 import world.SimpleObject;
 import world.SimpleSolid;
 
+/* Idea for Protagonist:
+ * Gravity Distortion Device
+ * Bionic Legs
+ * Time Refrigerator v1
+ * Time Refrigerator v2
+ * Telekinector
+ * Teletransporter
+ * Alternative Reality Machine
+ * Spacio-Temporal Parodoxim
+ */
 
-public class ProtagonistTD extends SimpleSolid implements Protagonist{
+public class ProtagonistTD extends SimpleSolid implements Protagonist {
 
-	public static final Img iUp = SpaceGame.dc.getImg("resources/images/Prot/protagonist-N.png");
-	public static final Img iRight = SpaceGame.dc.getImg("resources/images/Prot/protagonist-E.png");
-	public static final Img iDown = SpaceGame.dc.getImg("resources/images/Prot/protagonist-S.png");
-	public static final Img iLeft = SpaceGame.dc.getImg("resources/images/Prot/protagonist-W.png");
-	private int command = 0;
-	
-	public ProtagonistTD(){
+	private int move = 0;
+	private int direction = down;
+
+	public ProtagonistTD() {
 		this.setImage(iDown);
 	}
-	
+
 	@Override
-	public void update(int command){
-		this.command = command;
+	public void update(int command) {
+		switch (command) {
+		case down:
+			direction = command;
+			move |= 0b1;
+			break;
+		case up:
+			direction = command;
+			move |= 0b10;
+			break;
+		case right:
+			direction = command;
+			move |= 0b100;
+			break;
+		case left:
+			direction = command;
+			move |= 0b1000;
+			break;
+		case sDown:
+			move &= 0b1110;
+			break;
+		case sUp:
+			move &= 0b1101;
+			break;
+		case sRight:
+			move &= 0b1011;
+			break;
+		case sLeft:
+			move &= 0b0111;
+			break;
+		default:
+		}
 	}
 
 	@Override
@@ -29,34 +64,56 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist{
 
 	@Override
 	public void update() {
-		switch(command){
-		case down:
+		switch (move) {
+		case 0b0001:
 			this.move(0, 4, true);
-			this.setImage(iDown);
 			this.getImage().animate(true);
+			direction = down;
 			break;
-		case up:
+		case 0b0010:
 			this.move(0, -4, true);
-			this.setImage(iUp);
 			this.getImage().animate(true);
+			direction = up;
 			break;
-		case right:
+		case 0b0100:
 			this.move(4, 0, true);
-			this.setImage(iRight);
 			this.getImage().animate(true);
+			direction = right;
 			break;
-		case left:
+		case 0b1000:
 			this.move(-4, 0, true);
-			this.setImage(iLeft);
 			this.getImage().animate(true);
+			direction = left;
 			break;
-		case sDown:
-		case sUp:
-		case sLeft:
-		case sRight:
-			this.getImage().animate(false);
+		case 0b0101:
+			this.move(3, 3, true);
+			break;
+		case 0b1001:
+			this.move(-3, 3, true);
+			break;
+		case 0b0110:
+			this.move(3, -3, true);
+			break;
+		case 0b1010:
+			this.move(-3, -3, true);
 			break;
 		default:
+			this.getImage().animate(false);
+			move = 0;
+		}
+
+		switch (direction) {
+		case up:
+			this.setImage(iUp);
+			break;
+		case down:
+			this.setImage(iDown);
+			break;
+		case left:
+			this.setImage(iLeft);
+			break;
+		case right:
+			this.setImage(iRight);
 			break;
 		}
 	}
