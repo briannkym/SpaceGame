@@ -1,5 +1,8 @@
 package player;
 
+import sprite.Anm;
+import sprite.Img;
+import sprite.ImgCommand;
 import world.SimpleObject;
 import world.SimpleSolid;
 
@@ -18,6 +21,27 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 
 	private int move = 0;
 	private int direction = down;
+	private ImgCommand pause = new ImgCommand(){
+		@Override
+		public void accept(Img i) {
+			//Do nothing.
+		}
+		
+		public void accept(Anm a) {
+			a.animate(false);
+		}
+	};
+	
+	private ImgCommand resume = new ImgCommand(){
+		@Override
+		public void accept(Img i) {
+			//Do nothing.
+		}
+		
+		public void accept(Anm a) {
+			a.animate(true);
+		}
+	};
 
 	public ProtagonistTD() {
 		this.setImage(iDown);
@@ -28,18 +52,22 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 		switch (command) {
 		case down:
 			direction = command;
+			this.getImage().accept(resume);
 			move |= 0b1;
 			break;
 		case up:
 			direction = command;
+			this.getImage().accept(resume);
 			move |= 0b10;
 			break;
 		case right:
 			direction = command;
+			this.getImage().accept(resume);
 			move |= 0b100;
 			break;
 		case left:
 			direction = command;
+			this.getImage().accept(resume);
 			move |= 0b1000;
 			break;
 		case sDown:
@@ -67,22 +95,18 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 		switch (move) {
 		case 0b0001:
 			this.move(0, 4, true);
-			this.getImage().animate(true);
 			direction = down;
 			break;
 		case 0b0010:
 			this.move(0, -4, true);
-			this.getImage().animate(true);
 			direction = up;
 			break;
 		case 0b0100:
 			this.move(4, 0, true);
-			this.getImage().animate(true);
 			direction = right;
 			break;
 		case 0b1000:
 			this.move(-4, 0, true);
-			this.getImage().animate(true);
 			direction = left;
 			break;
 		case 0b0101:
@@ -98,7 +122,7 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 			this.move(-3, -3, true);
 			break;
 		default:
-			this.getImage().animate(false);
+			this.getImage().accept(pause);
 			move = 0;
 		}
 

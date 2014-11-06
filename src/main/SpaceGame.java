@@ -1,4 +1,5 @@
 package main;
+import objects.NPC;
 import player.DesktopListener;
 import player.ProtagonistTD;
 
@@ -23,6 +24,7 @@ public class SpaceGame {
 		dc.setCanvas(canvas);
 		m.addSimpleObject(p, 0, 0);
 		m.addSimpleObject(new testColor(), 20, 20);
+		m.addSimpleObject(new NPC(), 100, 100);
 		canvas.addKeyListener(dl);
 		SimpleWorld w = new SimpleWorld(m, dc);
 		w.start(true);
