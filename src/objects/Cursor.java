@@ -4,10 +4,8 @@ package objects;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
 
 import desktopView.ColorImg;
-
 import levelBuilder.LevelBuilder;
 import sprite.Img;
 import world.SimpleObject;
@@ -22,7 +20,7 @@ import world.SimpleObject;
  */
 
 public class Cursor extends SimpleObject implements KeyListener{
-	private Img<BufferedImage> red;
+	private Img red;
 	private int xdir = 0, ydir = 0;
 	private int cellWidth = 20, cellHeight = 20;;
 	private int HMoveRate = cellWidth;

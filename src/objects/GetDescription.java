@@ -3,13 +3,12 @@ package objects;
 import java.awt.image.BufferedImage;
 
 import desktopView.ColorImg;
-
 import sprite.Img;
 import world.SimpleObject;
 
 //Place this object over another to have its getDescription() printed to console.
 public class GetDescription extends SimpleObject{	
-	private static Img<BufferedImage> img = new ColorImg(0x70000000, 20, 20);
+	private static Img img = new ColorImg(0x70000000, 20, 20);
 	private boolean printed = false;
 	private int counter = 0;
 
