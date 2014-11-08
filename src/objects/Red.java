@@ -2,14 +2,13 @@
 
 package objects;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.InputMismatchException;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
+import desktopView.DesktopImgUpload;
 import sprite.Img;
-import sprite.ImgUpload;
 import world.SimpleObject;
 import world.SimpleSolid;
 
@@ -27,48 +26,49 @@ import world.SimpleSolid;
  * She was a pro-democracy activist but after threats to her life she is now...
  * Height 5' 3"
  * Weight 125 lb
- * Wears an old but in good condition backpack everywhere (I didn't put in the the low res figures yet)
+ * Short black hair with red stripe
+ * Confident
+ * Wears an old but in-good-condition backpack everywhere (I didn't put in the the low res figures yet)
  */
 
 /**
  * EXTRA ARGUMENTS
  * 
  * @param facingDirection
- *            (Int) 0-3 indicating initial orientation.
+ *            0-3 indicating initial orientation.
  * @param isWandering
- *            (boolean) Turns wandering on or off.
+ *            Turns wandering on or off.
  * @param range
- *            (Int) Indicates maximum wander range in one step.
+ *            Indicates maximum wander range in one step.
  * @param speed
- *            (Int) Wander speed in pixels / update call.
+ *            Wander speed in pixels / update call.
  * @param pauseTime
- *            (Int) Time between wanderings (in # of updates).
+ *            Time between wanderings (in # of updates).
  * @param dialogFile
- *            (String) Dialog file name
+ *            Dialog file name
  */
 //TODO draw backpack for Red
-//TODO Dialog
 //TODO how are dialogs initiated?
 //TODO make character, player-character, and npc abstract classes?
 public class Red extends SimpleSolid{ //TODO Change Red to your character's name.
-	static private String path = "resources/images/" +  "Red" + "/"; //TODO Change "Red" to your character's name. This is the subfolder where your images are stored.
-	static private File f1 = new File(path + "FrontRun.png");
-	static private File f2 = new File(path + "FrontStand.png");	
-	static private File f3 = new File(path + "LeftRun.png");
-	static private File f4 = new File(path + "LeftStand.png");
-	static private File f5 = new File(path + "BackRun.png");
-	static private File f6 = new File(path + "BackStand.png");
-	static private File f7 = new File(path + "RightRun.png");
-	static private File f8 = new File(path + "RightStand.png");
+	static private String imgDir = "resources/images/objects/Red/"; //TODO Change "Red" to your character's name. This is the subfolder where your images are stored.
+	static private File f1 = new File(imgDir + "FrontRun.png");
+	static private File f2 = new File(imgDir + "FrontStand.png");	
+	static private File f3 = new File(imgDir + "LeftRun.png");
+	static private File f4 = new File(imgDir + "LeftStand.png");
+	static private File f5 = new File(imgDir + "BackRun.png");
+	static private File f6 = new File(imgDir + "BackStand.png");
+	static private File f7 = new File(imgDir + "RightRun.png");
+	static private File f8 = new File(imgDir + "RightStand.png");
 	
-	static private Img<?>[] Running = {ImgUpload.getInstance(f1.getParentFile()).getImg(f1.getName()), 
-		ImgUpload.getInstance(f3.getParentFile()).getImg(f3.getName()), 
-		ImgUpload.getInstance(f5.getParentFile()).getImg(f5.getName()), 
-		ImgUpload.getInstance(f7.getParentFile()).getImg(f7.getName())};
-	static private Img<?>[] Standing = {ImgUpload.getInstance(f2.getParentFile()).getImg(f2.getName()), 
-		ImgUpload.getInstance(f4.getParentFile()).getImg(f4.getName()), 
-		ImgUpload.getInstance(f6.getParentFile()).getImg(f6.getName()), 
-		ImgUpload.getInstance(f8.getParentFile()).getImg(f8.getName())};
+	static private Img[] Running = {DesktopImgUpload.getInstance(f1.getParentFile()).getImg(f1.getName()), 
+		DesktopImgUpload.getInstance(f3.getParentFile()).getImg(f3.getName()), 
+		DesktopImgUpload.getInstance(f5.getParentFile()).getImg(f5.getName()), 
+		DesktopImgUpload.getInstance(f7.getParentFile()).getImg(f7.getName())};
+	static private Img[] Standing = {DesktopImgUpload.getInstance(f2.getParentFile()).getImg(f2.getName()), 
+		DesktopImgUpload.getInstance(f4.getParentFile()).getImg(f4.getName()), 
+		DesktopImgUpload.getInstance(f6.getParentFile()).getImg(f6.getName()), 
+		DesktopImgUpload.getInstance(f8.getParentFile()).getImg(f8.getName())};
 		
 	private boolean moving = false;
 	private int ySpeed = 0;
@@ -84,12 +84,10 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	private boolean wandering = false;
 	private int counter = 0;
 	
-	@SuppressWarnings("unchecked")
 	public Red() {
-		this.setImage((Img<BufferedImage>) Standing[direction]);
+		this.setImage((Img) Standing[direction]);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public Red(int facingDirection, boolean isWandering, int range, int speed, int pauseTime, String dialogFile) {
 		wanderRange = range;
 		wanderSpeed = speed;
@@ -97,7 +95,7 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 		direction = facingDirection;
 		wandering = isWandering;
 		dialogF = dialogFile;
-		this.setImage((Img<BufferedImage>) Standing[direction]);
+		this.setImage((Img) Standing[direction]);
 	}
 	
 	//Triggered when the player interacts with this NPC. Not useful for PC's (unless you want to have a dialog with yourself?).
@@ -115,11 +113,11 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	 * Starts or stops wandering behavior
 	 * 
 	 * @param range
-	 *            (Int) Indicates maximum wander range in one step.
+	 *            Indicates maximum wander range in one step.
 	 * @param speed
-	 *            (Int) Wander speed in pixels / update call.
+	 *            Wander speed in pixels / update call.
 	 * @param pauseTime
-	 *            (Int) Time between wanderings, in number of updates.
+	 *            Time between wanderings, in number of updates.
 	 */
 	public void wander(int range, int speed, int pauseTime) {
 		wanderRange = range;
@@ -132,10 +130,9 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 		wandering = false;
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void stand() {
 		moving = false;
-		this.setImage((Img<BufferedImage>) Standing[direction]);
+		this.setImage((Img) Standing[direction]);
 	}
 
 	@Override
@@ -178,7 +175,6 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	 * @param speed
 	 *            Movement speed in pixels / update.
 	 */
-	@SuppressWarnings("unchecked")
 	public void animatedMove(int x, int y, int speed) {
 		moving = true;
 		
@@ -220,7 +216,7 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 			else
 				direction = 1;
 		}
-		this.setImage((Img<BufferedImage>) Running[direction]);
+		this.setImage((Img) Running[direction]);
 	}
 
 	@Override

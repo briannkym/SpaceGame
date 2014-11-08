@@ -21,9 +21,15 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import desktopView.DesktopCanvas;
+import desktopView.DesktopImgUpload;
+import desktopView.EditorCanvas;
 import objects.*;
+import sprite.Img;
+import sprite.ImgCanvas;
 import sprite.ImgUpload;
 import world.SimpleMap;
 import world.SimpleMapIO;
@@ -37,11 +43,12 @@ import world.SimpleWorldFactory;
  * 
  * @author Mark Groeneveld
  * @author Brian Nakayama
- * @version 1.01
+ * @version 1.03
  */
 
 //TODO expand object selection window to deal with many objects
-//TODO make option so updates don't happen, so moving objects stay where you put them
+//TODO make option so updates don't happen, so moving objects stay where you put them while buliding the leve.
+//TODO recheck JOptionPane parent components?
 public class LevelBuilder{
 	private static int cellWidth; //pixels
 	private static int cellHeight;
@@ -64,8 +71,11 @@ public class LevelBuilder{
 	private static SimpleObject objectToRemove = null;
 	
 	public static void main(String[] args){
-		loadResources();
-		splashWindow();
+		EditorCanvas ec = new EditorCanvas(400, 400, windowWidth, verticalWindowPlacement, "blah");
+		ec.windowScreen();
+		
+//		loadResources();
+//		splashWindow();
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -258,10 +268,10 @@ public class LevelBuilder{
 
 		if (saveNames.length > 0){		
 			String mapPath;
-			saveName = (String) JOptionPane.showInputDialog(w, "Choose file to overwrite, or a new file",
+			saveName = (String) JOptionPane.showInputDialog(null, "Choose file to overwrite, or a new file",
 					"Choose!", JOptionPane.PLAIN_MESSAGE, null, saveNames, saveName);
 			if (saveName == "New File") {
-				mapPath = JOptionPane.showInputDialog(w, "New file name", "Write!", JOptionPane.PLAIN_MESSAGE);
+				mapPath = JOptionPane.showInputDialog(null, "New file name", "Write!", JOptionPane.PLAIN_MESSAGE);
 				mapPath = "saves/" + mapPath + ".map";
 			}
 			else if (saveName == null) {
@@ -357,14 +367,15 @@ public class LevelBuilder{
 	private static void startMapAndWorld(){
 		cursor = new Cursor(cellWidth, cellHeight);
 		m.addSimpleObject(cursor, cellWidth, cellHeight);
-		w = new SimpleWorld(m, windowWidth, windowHeight, "Space Game Level Builder: " + levelName);
-		w.addKeyListener(cursor);
+		DesktopCanvas dc = new DesktopCanvas(windowWidth, windowHeight, "Space Game Level Builder: " + levelName);
+		w = new SimpleWorld(m, dc); 
+		dc.addKeyListener(cursor);
 		w.setCameraStalk(cursor);
 		w.start(false);
 		
 		File f = new File("resources/images/" + backgroundFileName);
 		if (f.exists())
-			w.setBGImage(ImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
+			w.setBGImage(DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
 		
 		selectObjectTypeWindow();
 		extraArgumentsWindow();
@@ -376,7 +387,7 @@ public class LevelBuilder{
 			swf.addSimpleObject(id[objectType], cursor.getX(), cursor.getY(), argField.getText(), m);
 		}
 		catch (Exception e) {
-			JOptionPane.showMessageDialog(w, "Incorrect extra arguments for object", null, JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Incorrect extra arguments for object", null, JOptionPane.PLAIN_MESSAGE);
 		}
 	}
 	
@@ -427,13 +438,18 @@ public class LevelBuilder{
 			}
 		}
 		
-		File f = new File("resources/images/splash.png");
-		final BufferedImage img = ImgUpload.getInstance(f.getParentFile()).getImg(f.getName()).getSlide();			
+		Image img1 = null;
+		try {
+			img1 = ImageIO.read(new File("resources/images/LevelBuilder/splash.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		final Image img2 = img1;
 		JPanel BGPanel = new JPanel(){
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-		        g.drawImage(img, 0, 0, null);
+		        g.drawImage(img2, 0, 0, null);
 			}
 		};
 		
@@ -484,7 +500,7 @@ public class LevelBuilder{
 			name = constructors[i].getName();
 			
 			try {
-				img = ((SimpleObject) constructors[i].newInstance()).getImage().getSlide();
+				img = (BufferedImage) ((SimpleObject) constructors[i].newInstance()).getImage();
 			} catch (InstantiationException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
