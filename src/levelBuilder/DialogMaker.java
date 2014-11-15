@@ -40,9 +40,10 @@ import java.awt.geom.Ellipse2D;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.HashMap;
 
 import javax.imageio.ImageIO;
@@ -54,6 +55,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -63,6 +65,7 @@ import org.apache.commons.collections15.Transformer;
 
 import dialog.DialogGraph;
 import dialog.DialogNode;
+
 import edu.uci.ics.jung.algorithms.layout.AbstractLayout;
 import edu.uci.ics.jung.algorithms.layout.KKLayout;
 import edu.uci.ics.jung.algorithms.layout.Layout;
@@ -73,50 +76,67 @@ import edu.uci.ics.jung.visualization.control.EditingModalGraphMouse;
 import edu.uci.ics.jung.visualization.picking.PickedState;
 import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
 
+/**
+ * GUI application for creating and editing dialog graphs.
+ * 
+ * @author Mark Groeneveld
+ * @version 1.0
+ */
+
 //TODO delete edges
-//TODO move JUNG to levelBuilder package
+//TODO delete vertices
 public class DialogMaker {
-	private static DirectedSparseGraph<DialogNode, Double> g = new DirectedSparseGraph<DialogNode, Double>();
+	private static DirectedSparseGraph<DialogNode, Double> g;
 	private static Layout<DialogNode, Double> layout;
-	private static VisualizationViewer<DialogNode, Double> vv;
-	private static DialogGraph dg = new DialogGraph();
+	private static DialogGraph dg;
 	private static HashMap<String, DialogNode> nodeMap;
-	private static Object[] nodeArray;	
 	private static int windowWidth = 800;
 	private static int windowHeight = 800;
 	private static int verticalWindowPlacement = 0;
+	private static int horizontalWindowPlacement = 0;
 	private static JTextField textField, probSetField, childrenField, strategyField;
 	private static JCheckBox npcBox;
-	private static boolean npc;
+	private static boolean isNPCBoxChecked;
 	private static int strategy = 0;
 	private static DialogNode selectedNode;
 	private static PickedState<DialogNode> pickedState;
-	private static double lastEdge = 0.0;
+	private static double addedEdgeID = 0.0;
 	private static String imgDir = "resources/images/dialogMaker/";
 	private static String saveDir = "resources/dialogs/";
+	private static String saveName = "New File";
 	
+	/**
+	 * Starts the program and brings up various windows.
+	 * 
+	 * @param args not used
+	 */
 	public static void main(String[] args) {
 		keyWindow();
 		nodePropertiesWindow();
-		inputWindow();
+		actionWindow();
 		instructionsWindow();
 		splashWindow();
 	}
 	
+	/**
+	 * First window to interact with. Offers options of load graph or new graph.
+	 */
 	private static void splashWindow(){	
-		final JFrame splashFrame = new JFrame("Dialog Maker");
+		final JFrame frame = new JFrame("Dialog Maker");
 		
+		//Handles button pushes.
 		class SplashActionHandler implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				splashFrame.dispose();
+				frame.dispose();
 				if (e.getActionCommand().equals("loadGraph"))
-					loadGraph();
+					loadFilePopup();
 				else
-					newGraph();
+					loadGraph(true);
 			}
 		}
-				
+		
+		//Loads and sets background image.
 		BufferedImage img = null;
 		try {
 			img = ImageIO.read(new File(imgDir + "splash.png"));
@@ -124,7 +144,7 @@ public class DialogMaker {
 			e.printStackTrace();
 		}
 		final BufferedImage img2 = img;
-		JPanel BGPanel = new JPanel(){
+		JPanel panel = new JPanel(){
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
@@ -132,14 +152,16 @@ public class DialogMaker {
 			}
 		};
 		
-		BGPanel.setOpaque(true);
-		BGPanel.setLayout(new BorderLayout());
-		BGPanel.setPreferredSize(new Dimension(800,600));
-		BGPanel.setBorder(BorderFactory.createEmptyBorder(0, 0, 300, 0));
+		panel.setOpaque(true);
+		panel.setLayout(new BorderLayout());
+		panel.setPreferredSize(new Dimension(800,600));
+		panel.setBorder(BorderFactory.createEmptyBorder(0, 0, 300, 0));
 		
 		JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
 		buttonPanel.setOpaque(false);
 		
+		
+		//Buttons
 		JButton loadMap = new JButton("Load Graph");
 		loadMap.setActionCommand("loadGraph");
 		loadMap.addActionListener(new SplashActionHandler());
@@ -150,14 +172,26 @@ public class DialogMaker {
 		newMap.addActionListener(new SplashActionHandler());
 		buttonPanel.add(newMap);
 		
-		BGPanel.add(buttonPanel, BorderLayout.SOUTH);
 		
-		splashFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		splashFrame.add(BGPanel);
-		splashFrame.pack();
-		splashFrame.setVisible(true);
+		panel.add(buttonPanel, BorderLayout.SOUTH);		
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.add(panel);
+		frame.pack();
+		frame.setVisible(true);
 	}
 	
+	/**
+	 * Filters out all files except .xml.
+	 */
+	private static FilenameFilter fileFilter = new FilenameFilter() {
+	    public boolean accept(File directory, String fileName) {
+	        return fileName.endsWith(".xml");
+	    }
+	};
+	
+	/**
+	 * Displays key (i.e. legend) to the graph.
+	 */
 	private static void keyWindow(){
 		JPanel panel = new JPanel(new GridLayout(0,1,0,0));
 
@@ -189,15 +223,22 @@ public class DialogMaker {
 		frame.setVisible(true);
 		
 		verticalWindowPlacement += frame.getBounds().height + frame.getBounds().y;
+		horizontalWindowPlacement += frame.getBounds().width;
 	}
 	
+	/**
+	 * Displays properties of the currently selected node.
+	 * Also allows changing of most node properties. 
+	 */
 	private static void nodePropertiesWindow() {
+		//Performs actions based on button pushes.
 		class ActionHandler implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (e.getActionCommand().equals("probSet")) {
-					//parsing new probSet string to double[][]
-					HashMap<Integer, Double[]> map = selectedNode.getProbSet();
+				switch (e.getActionCommand()) {
+				case "probSet":
+					//parsing new probSet string to double[]
+					HashMap<Integer, Double[]> map = selectedNode.getProbSets();
 					if (probSetField.getText().equals("")) {
 						map.remove(strategy);
 					}
@@ -209,12 +250,17 @@ public class DialogMaker {
 							newProbSet[c] = Double.parseDouble(probSetInput[c]);
 						map.put(strategy, newProbSet);
 					}
-					dg.changeNodeProbSet(selectedNode.getText(), map);
+					selectedNode.setProbSets(map);
+				case "npc":
+					if (isNPCBoxChecked)
+						selectedNode.setNPC();
+					else
+						selectedNode.setPC();
+				case "text":
+					dg.changeNodeText(selectedNode, textField.getText());
+				case "strategy":
+					strategy = Integer.parseInt(strategyField.getText());
 				}
-				if (e.getActionCommand().equals("npc"))
-					dg.switchNodeNPC(selectedNode.getText());
-				if (e.getActionCommand().equals("text"))
-					dg.changeNodeText(selectedNode.getText(), textField.getText());
 			}
 		}
 		
@@ -224,24 +270,25 @@ public class DialogMaker {
 		JPanel masterPanel = new JPanel(new GridLayout(0,3,0,0));
 		
 		
-		textField = new JTextField("example", 10);
+		//Buttons, ckeckboxes, textboxes, and labels
+		textField = new JTextField("May I buy your wand?", 10);
 		fieldPanel.add(textField);
 		labelPanel.add(new JLabel("Node Text"));
 		JButton button1 = new JButton("Change");
 		button1.setActionCommand("text");
 		button1.addActionListener(new ActionHandler());
 		buttonPanel.add(button1);
+		
 		npcBox = new JCheckBox();
 		npcBox.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				if (e.getStateChange() == ItemEvent.DESELECTED)
-					npc = false;
+					isNPCBoxChecked = false;
 				else
-					npc = true;
+					isNPCBoxChecked = true;
 			}
 		});		
-		
 		fieldPanel.add(npcBox);
 		labelPanel.add(new JLabel("NPC"));
 		JButton button2 = new JButton("Change");
@@ -249,7 +296,7 @@ public class DialogMaker {
 		button2.addActionListener(new ActionHandler());
 		buttonPanel.add(button2);
 		
-		childrenField = new JTextField("c00,c01", 10);		
+		childrenField = new JTextField("child1,child2", 10);		
 		fieldPanel.add(childrenField);
 		labelPanel.add(new JLabel("Children"));
 		JButton button3 = new JButton("");
@@ -262,6 +309,14 @@ public class DialogMaker {
 		button4.setActionCommand("probSet");
 		button4.addActionListener(new ActionHandler());
 		buttonPanel.add(button4);
+		
+		strategyField = new JTextField("0", 10);
+		fieldPanel.add(strategyField);
+		labelPanel.add(new JLabel("Strategy"));
+		JButton button5 = new JButton("Change");
+		button5.setActionCommand("strategy");
+		button5.addActionListener(new ActionHandler());
+		buttonPanel.add(button5);
 		
 		
 		masterPanel.add(buttonPanel);
@@ -279,76 +334,100 @@ public class DialogMaker {
 		verticalWindowPlacement += frame.getBounds().height;
 	}
 	
-	private static void inputWindow() {
+	/**
+	 * Provides other action buttons.
+	 */
+	private static void actionWindow() {
+		//Performs actions based on button pushes.
 		class ActionHandler implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				if (e.getActionCommand().equals("edge") && lastEdge != 0.0) {
-					DialogNode n = g.getSource(lastEdge);
-					int length;
-					if (n.getChildren() == null)
-						length = 0;
-					else
-						length = n.getChildren().length;
-					String[] newChildren = new String[length + 1];
-					for (int c = 0; c < newChildren.length - 1; c++)
-						newChildren[c] = n.getChildren()[c];
-					newChildren[newChildren.length-1] = g.getDest(lastEdge).getText();
-					dg.changeNodeChildren(n.getText(), newChildren);
-					lastEdge = 0.0;
-				}
-				if (e.getActionCommand().equals("strategy"))
-					strategy = Integer.parseInt(strategyField.getText());
-				if (e.getActionCommand().equals("save"))
+				switch (e.getActionCommand()) {
+				case "edge":
+					if (addedEdgeID != 0.0) {
+						DialogNode n = g.getSource(addedEdgeID);
+						int length;
+						if (n.getChildren().length == 0)
+							length = 0;
+						else
+							length = n.getChildren().length;
+						DialogNode[] newChildren = new DialogNode[length + 1];
+						for (int c = 0; c < newChildren.length - 1; c++)
+							newChildren[c] = n.getChildren()[c];
+						newChildren[newChildren.length-1] = nodeMap.get(g.getDest(addedEdgeID).getText());
+						n.setChildren(newChildren);
+						addedEdgeID = 0.0;
+					}
+				case "save":
 					saveGraph();
+				case "check":
+					//Checks for errors and displays them if they exist.
+					ArrayList<String> errorList = new ArrayList<String>();
+					errorList = dg.check();
+					if (errorList.isEmpty()) {
+						JOptionPane.showMessageDialog(null, "No errors!", null, JOptionPane.PLAIN_MESSAGE);
+					}
+					else {
+						JPanel panel = new JPanel(new GridLayout(0,1,0,0));
+						for (String error : errorList)
+							panel.add(new JLabel(error));
+						JOptionPane.showMessageDialog(null, panel, "Errors. Fix these to continue.", JOptionPane.PLAIN_MESSAGE);
+					}
+				case "reload":
+					loadGraph(false);
+				}
 			}
 		}
 		
-		JPanel fieldPanel = new JPanel(new GridLayout(0,1,0,0));
-		JPanel buttonPanel = new JPanel(new GridLayout(0,1,0,0));
-		JPanel masterPanel = new JPanel(new GridLayout(0,2,0,0));
-	
+		JPanel panel = new JPanel(new GridLayout(0,1,0,0));
 		
-		fieldPanel.add(new JTextField("<-- Click this after adding a new edge.", 21));
+		
+		//Buttons
 		JButton button3 = new JButton("New edge");
 		button3.setActionCommand("edge");
 		button3.addActionListener(new ActionHandler());
-		buttonPanel.add(button3);
+		panel.add(button3);
 		
-		strategyField = new JTextField("0", 21);
-		fieldPanel.add(strategyField);
-		JButton button5 = new JButton("Change Strategy");
-		button5.setActionCommand("strategy");
-		button5.addActionListener(new ActionHandler());
-		buttonPanel.add(button5);
-		
-		fieldPanel.add(new JTextField("This field does nothing."));
-		JButton button6 = new JButton("Save Graph");
+		JButton button6 = new JButton("Save");
 		button6.setActionCommand("save");
 		button6.addActionListener(new ActionHandler());
-		buttonPanel.add(button6);	
+		panel.add(button6);
 		
-		masterPanel.add(buttonPanel);
-		masterPanel.add(fieldPanel);
+		JButton button7 = new JButton("Check");
+		button7.setActionCommand("check");
+		button7.addActionListener(new ActionHandler());
+		panel.add(button7);
+		
+		JButton button1 = new JButton("Reload");
+		button1.setActionCommand("reload");
+		button1.addActionListener(new ActionHandler());
+		panel.add(button1);
+		
 		
 		JFrame frame = new JFrame("Other Input");
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		fieldPanel.setOpaque(true);
-		frame.setContentPane(masterPanel);
+		frame.setContentPane(panel);
 		frame.pack();
-		frame.setLocation(windowWidth, verticalWindowPlacement);
+		frame.setLocation(windowWidth + horizontalWindowPlacement, 0);
 		frame.setVisible(true);
-		
-		verticalWindowPlacement += frame.getBounds().height;
 	}
 	
+	/**
+	 * Provides instructions for using the program.
+	 */
 	private static void instructionsWindow() {
 		JFrame frame = new JFrame("Instructions");
 		JPanel panel = new JPanel(new GridLayout(0, 1, 0, 0));
 		
+		panel.add(new JLabel("DO NOT USE THE RIGHT CLICK MENU.", SwingConstants.LEFT));
+		panel.add(new JLabel("DO NOT REMOVE NODES OR VERTICES WITH THIS GUI. EDIT THE XML FILE INSTEAD.", SwingConstants.LEFT));
+		panel.add(new JLabel("", SwingConstants.LEFT));
+		panel.add(new JLabel("The 'Check' button runs various checks to make sure the graph does not contain errors.", SwingConstants.LEFT));
+		panel.add(new JLabel("", SwingConstants.LEFT));
 		panel.add(new JLabel("Transforming mode:", SwingConstants.LEFT));
 		panel.add(new JLabel("Shift + click + drag to rotate", SwingConstants.LEFT));
 		panel.add(new JLabel("Scroll to zoom", SwingConstants.LEFT));
+		panel.add(new JLabel("Command + click + drag to to weird stretchy thing", SwingConstants.LEFT));
 		panel.add(new JLabel("", SwingConstants.LEFT));
 		panel.add(new JLabel("Picking mode:", SwingConstants.LEFT));
 		panel.add(new JLabel("Click + drag to select multiple nodes", SwingConstants.LEFT));
@@ -370,85 +449,162 @@ public class DialogMaker {
 		verticalWindowPlacement += frame.getBounds().height;
 	}
 	
-	private static void newGraph() {
-		nodeMap = dg.getMap();
-		startGraph();
-	}
-	
-	private static void loadGraph() {
-		dg.test();
-		nodeMap = dg.getMap();
-		Collection<DialogNode> nodeCollection = nodeMap.values();
-		nodeArray = nodeCollection.toArray();
-		
-		//adds vertices
-		for (int n = 0; n < nodeArray.length; n ++) {
-			DialogNode cn = (DialogNode) nodeArray[n];
-			g.addVertex(cn);
-		}		
-		//add edges
-		for (int n = 0; n < nodeArray.length; n ++) {
-			DialogNode cn = (DialogNode) nodeArray[n];
-			if (cn.getChildren() != null)
-				for (int c = 0; c < cn.getChildren().length; c++) {
-					DialogNode child = nodeMap.get(cn.getChildren()[c]);
-					if (cn.isNPC()) {						
-						g.addEdge((double)(child.hashCode()*cn.hashCode()), cn, child, EdgeType.DIRECTED);
-					}
-					else
-						g.addEdge((double)(child.hashCode()*cn.hashCode()), cn, child, EdgeType.DIRECTED);
+	/**
+	 * Popup for selecting file to load.
+	 */
+	private static void loadFilePopup(){	
+		File savesFolder = new File(saveDir);
+		File[] saves = savesFolder.listFiles(fileFilter);
+		if (savesFolder.exists()){
+			if (saves.length > 0){
+				String[] saveNames = savesFolder.list(fileFilter);
+				saveName = (String) JOptionPane.showInputDialog(null, "Which file would you like to load?",
+						"Choose!", JOptionPane.PLAIN_MESSAGE, null, saveNames, saveNames[0]);
+				if (saveName == null) {
+					splashWindow();
 				}
+				else {
+					loadGraph(false);
+				}
+			}
+			else {
+				JOptionPane.showMessageDialog(null, "No existing save files", null, JOptionPane.PLAIN_MESSAGE);
+				splashWindow();
+			}
+		}
+		else {
+			savesFolder.mkdir();
+			JOptionPane.showMessageDialog(null, "No existing save files", null, JOptionPane.PLAIN_MESSAGE);
+			splashWindow();
 		}
 		
-		 //sets position of each node
-		Object[] array = nodeMap.values().toArray();
-		for (Object o : array) {
-			DialogNode n = (DialogNode) o;
-			Point2D.Double point = new Point2D.Double(n.getX(), n.getY());
-			if (point.x != 0 && point.y != 0)
-				layout.setLocation(n, point);
-		}
-		
-		startGraph();
 	}
 	
-	private static void startGraph() {
+	/**
+	 * Loads graph from a file. 
+	 * 
+	 * @param isNewGraph true if no file is being loaded
+	 */
+	private static void loadGraph(boolean isNewGraph) {
+		g = new DirectedSparseGraph<DialogNode, Double>();
+		dg = new DialogGraph();
+		if (!isNewGraph)
+			dg.load(saveDir + saveName);
+		nodeMap = dg.getGraph();
+		
+		//add vertices and edges
+		for (DialogNode n : nodeMap.values()) {
+			g.addVertex(n);
+			for (DialogNode c : n.getChildren())
+				g.addEdge((double)(c.hashCode()*n.hashCode()), n, c, EdgeType.DIRECTED);
+		}
+		
+		displayGraph();
+	}
+
+	/**
+	 * Saves graph to file.
+	 */
+	private static void saveGraph() {		
+		//Checks for errors
+		ArrayList<String> errorList = new ArrayList<String>();
+		errorList = dg.check();
+		if (errorList.isEmpty()) {
+			//Save popup.
+			String filePath = null;
+			File savesFolder = new File(saveDir);
+			if (!savesFolder.exists())
+				savesFolder.mkdir();
+			String[] saveNames = new String[savesFolder.list(fileFilter).length+1];
+			for (int i = 0; i < saveNames.length-1; i++) {
+				saveNames[i] = savesFolder.list(fileFilter)[i];
+			}
+			saveNames[saveNames.length-1] = "New File";
+		
+			if (saveNames.length > 0){		
+				saveName = (String) JOptionPane.showInputDialog(null, "Choose file to overwrite, or a new file",
+						"Choose!", JOptionPane.PLAIN_MESSAGE, null, saveNames, saveName);
+				if (saveName == "New File") {
+					filePath = JOptionPane.showInputDialog(null, "New file name", "Write!", JOptionPane.PLAIN_MESSAGE);
+					filePath = saveDir + filePath + ".xml";
+				}
+				else if (saveName == null) {
+					return;
+				}
+				else {
+					filePath = saveDir + saveName;
+				}
+				
+				//Saves position of each node.
+				for (DialogNode n : nodeMap.values()) {
+					n.setX(((AbstractLayout<DialogNode, Double>) layout).getX(n));
+					n.setY(((AbstractLayout<DialogNode, Double>) layout).getY(n));
+				}	
+				
+				//Saves graph
+				dg.save(filePath);
+			}
+		}
+		//Display errors
+		else {
+			JPanel panel = new JPanel(new GridLayout(0,1,0,0));
+			for (String error : errorList)
+				panel.add(new JLabel(error));
+			JOptionPane.showMessageDialog(null, panel, "Errors. Fix these to continue.", JOptionPane.PLAIN_MESSAGE);
+		}
+	}
+
+	/**
+	 * Various routines necessary for displaying graph.
+	 */
+	private static void displayGraph() {
 		JFrame frame = new JFrame("Dialog Maker");
-		 //TODO change to static layout and change test nodes
 		layout = new KKLayout<DialogNode, Double>(g);
-		vv = new VisualizationViewer<DialogNode, Double>(layout);
+		VisualizationViewer<DialogNode, Double> vv = new VisualizationViewer<DialogNode, Double>(layout);
+		layout.setSize(new Dimension(windowWidth,windowHeight));
+		vv.setPreferredSize(new Dimension(windowWidth,windowHeight));
+		
+		//Changes fields in node properties window when a node is selected
 		pickedState = vv.getPickedVertexState();
-		pickedState.addItemListener(new ItemListener() { //Changes fields in node properties window to match selected node
+		pickedState.addItemListener(new ItemListener() {
 			@Override
 			public void itemStateChanged(ItemEvent e) {
 				Object subject = e.getItem();
 				if (subject instanceof DialogNode) {
 					selectedNode = (DialogNode)subject;
 					textField.setText(selectedNode.getText());
-					npcBox.setSelected(selectedNode.isNPC());
-					String working = Arrays.toString(selectedNode.getChildren());
+					npcBox.setSelected(selectedNode.getIsNPC());
+					String working = "";
+					for (int c = 0; c < selectedNode.getChildren().length; c++) {
+						if (c == 0)
+							working += selectedNode.getChildren()[c].getText();
+						else
+							working += "," + selectedNode.getChildren()[c].getText();
+					}
 					if (working.equals("null"))
 						working = "";
 					childrenField.setText(working.replace("]", "").replace("[", ""));
-					working = Arrays.toString(selectedNode.getProbSet().get(strategy));
+					working = Arrays.toString(selectedNode.getProbSets().get(strategy));
 					if (working.equals("null"))
 						working = "";
-					probSetField.setText(working.replace("]", "").replace("[", ""));
+					probSetField.setText(working.replace("]", "").replace("[", "").replace(" ", ""));
 				}
 			}
 		});
-		layout.setSize(new Dimension(windowWidth,windowHeight));
-		vv.setPreferredSize(new Dimension(windowWidth,windowHeight));			 
+			
+		//Colors vertices according to 'initial', 'end', or 'middle' status.
 		vv.getRenderContext().setVertexFillPaintTransformer(new Transformer<DialogNode, Paint>() {
 			@Override
 			public Paint transform(DialogNode n) {
 				if (n.getText().equals("initial"))
 					return new Color(100, 255, 100);
-				if (n.getChildren() == null)
+				if (n.getChildren().length == 0)
 					return new Color(255, 100, 100);
 				return new Color(100, 100, 255);
 			}
 		});
+		
+		//Labels vertices with node text.
 		vv.getRenderContext().setVertexLabelTransformer(new Transformer<DialogNode, String>() {
 			@Override
 			public String transform(DialogNode n) {
@@ -456,75 +612,79 @@ public class DialogMaker {
 			}
 			 
 		});
+		
+		//Draws shape of vertices according to player or non-player status.
 		vv.getRenderContext().setVertexShapeTransformer(new Transformer<DialogNode ,Shape>() {
 			@Override
 			public Shape transform(DialogNode n) {
-				if (n.isNPC())
+				if (n.getIsNPC())
 					return new Rectangle(-15, -15, 30, 30);
 				else
 					return new Ellipse2D.Double(-15.0, -15.0, 30.0, 30.0);
 			}
 			
 		});
+		
+		//Labels edges with probability of child being selected under the current strategy.
 		vv.getRenderContext().setEdgeLabelTransformer(new Transformer<Double ,String>() {
 			@Override
 			public String transform(Double e) {
 				DialogNode source = g.getSource(e);
-				if (source.getProbSet().size() > 0)
+				if (source.getProbSets().size() > 0)
 					for (int c = 0; c < source.getChildren().length; c++)
-						if (nodeMap.get(source.getChildren()[c]).equals(g.getDest(e))) {
-							Double[] a = source.getProbSet().get(strategy);
-							if (source.getProbSet().get(strategy) != null)
-								return Double.toString(source.getProbSet().get(strategy)[c]);
+						if (source.getChildren()[c].equals(g.getDest(e))) {
+							Double[] a = source.getProbSets().get(strategy);
+							if (source.getProbSets().get(strategy) != null)
+								return Double.toString(source.getProbSets().get(strategy)[c]);
 							else //If node does not have probSet for that strategy, default to strategy 0.
-								return Double.toString(source.getProbSet().get(0)[c]);
+								return Double.toString(source.getProbSets().get(0)[c]);
 						}
 				return null;
 			} 
 		});
 		vv.getRenderer().getVertexLabelRenderer().setPosition(Position.CNTR);
 		
+		//Routines for editing mode.
 		EditingModalGraphMouse<DialogNode, Double> gm = new EditingModalGraphMouse<DialogNode, Double>(vv.getRenderContext(), 
-				new Factory<DialogNode>() {
-					@Override
-					public DialogNode create() {
-						dg.createNode(npc, textField.getText(), null, null, 0, 0);
-						DialogNode n = nodeMap.get(textField.getText());
-						n.setX(((AbstractLayout<DialogNode, Double>) layout).getX(n));
-						n.setY(((AbstractLayout<DialogNode, Double>) layout).getY(n));
-						return n;
-					}
-		}, new Factory<Double>() {
+			//Runs when a new node is created.
+			new Factory<DialogNode>() {
+			@Override
+			public DialogNode create() {
+				HashMap<Integer, Double[]> emptyMap = new HashMap<Integer, Double[]>();
+				DialogNode[] emptyArray = new DialogNode[0];
+				DialogNode n = new DialogNode(isNPCBoxChecked, textField.getText(), emptyMap, emptyArray, 0, 0);
+				dg.addNode(n);
+				return n;
+			}
+		},	
+			//Runs when a new edge is created.
+			new Factory<Double>() {
 			@Override
 			public Double create() {
-				lastEdge = Math.random();
-				return lastEdge;
+				addedEdgeID = Math.random();
+				return addedEdgeID;
 			}
 		}); 
 		vv.setGraphMouse(gm);
 		
+		//Frame and mode menu.
 		JMenuBar menuBar = new JMenuBar();
 		JMenu modeMenu = gm.getModeMenu();
 		modeMenu.setText("Mouse Mode");
 		modeMenu.setIcon(null);
 		modeMenu.setPreferredSize(new Dimension(100,20));
 		menuBar.add(modeMenu);
-		frame.setJMenuBar(menuBar);
-		
+		frame.setJMenuBar(menuBar);		
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.getContentPane().add(vv); 
 		frame.pack();
 		frame.setVisible(true); 
-	}
-	
-	private static void saveGraph() {
-		Object[] array = nodeMap.values().toArray();
-		for (Object o : array) { //saves position of each node
-			DialogNode n = (DialogNode) o;
-			n.setX(((AbstractLayout<DialogNode, Double>) layout).getX(n));
-			n.setY(((AbstractLayout<DialogNode, Double>) layout).getY(n));
+				
+		//Sets position of each node.
+		for (DialogNode n : nodeMap.values()) {
+			Point2D.Double point = new Point2D.Double(n.getX(), n.getY());
+			if (point.x != 0.0 && point.y != 0.0)
+				layout.setLocation(n, point);
 		}
-		if (dg.check())
-			dg.save("blah"); //TODO fimename selection
 	}
 }
