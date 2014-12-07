@@ -5,6 +5,8 @@ import player.ProtagonistTD;
 
 import test.testColor;
 import world.SimpleMap;
+import world.SimpleObject;
+import world.SimpleSolid;
 import world.SimpleWorld;
 
 import control.DesktopControl;
@@ -24,6 +26,32 @@ public class SpaceGame {
 		dc.setCanvas(canvas);
 		m.addSimpleObject(p, 0, 0);
 		m.addSimpleObject(new testColor(), 20, 20);
+
+		SimpleSolid Obstruction = new SimpleSolid(){
+
+			@Override
+			public void collision(SimpleObject s) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void update() {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public int id() {
+				// TODO Auto-generated method stub
+				return 0;
+			}
+			
+		};
+		
+		Obstruction.setImage(new ColorImg(0xFF000000, 16, 16));
+		
+		m.addSimpleObject(Obstruction, 40, 50);
 		m.addSimpleObject(new NPC(), 100, 100);
 		canvas.addKeyListener(dl);
 		SimpleWorld w = new SimpleWorld(m, dc);

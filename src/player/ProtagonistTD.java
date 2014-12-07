@@ -94,32 +94,32 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 	public void update() {
 		switch (move) {
 		case 0b0001:
-			this.move(0, 4, true);
+			this.move(0, 4, 2);
 			direction = down;
 			break;
 		case 0b0010:
-			this.move(0, -4, true);
+			this.move(0, -4, 2);
 			direction = up;
 			break;
 		case 0b0100:
-			this.move(4, 0, true);
+			this.move(4, 0, 2);
 			direction = right;
 			break;
 		case 0b1000:
-			this.move(-4, 0, true);
+			this.move(-4, 0, 2);
 			direction = left;
 			break;
 		case 0b0101:
-			this.move(3, 3, true);
+			this.move(3, 3, 2);
 			break;
 		case 0b1001:
-			this.move(-3, 3, true);
+			this.move(-3, 3, 2);
 			break;
 		case 0b0110:
-			this.move(3, -3, true);
+			this.move(3, -3, 2);
 			break;
 		case 0b1010:
-			this.move(-3, -3, true);
+			this.move(-3, -3, 2);
 			break;
 		default:
 			this.getImage().accept(pause);
