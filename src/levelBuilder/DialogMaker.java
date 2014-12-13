@@ -83,6 +83,7 @@ import edu.uci.ics.jung.visualization.renderers.Renderer.VertexLabel.Position;
  * @version 1.0
  */
 
+//TODO display all probsets
 //TODO delete edges
 //TODO delete vertices
 public class DialogMaker {
@@ -238,19 +239,21 @@ public class DialogMaker {
 				switch (e.getActionCommand()) {
 				case "probSet":
 					//parsing new probSet string to double[]
-					HashMap<Integer, Double[]> map = selectedNode.getProbSets();
-					if (probSetField.getText().equals("")) {
-						map.remove(strategy);
-					}
+					ArrayList<double[]> probSets = selectedNode.getProbSets();
+					if (probSetField.getText().equals(""))
+						probSets.remove(strategy);
 					else {
 						String[] probSetInput = probSetField.getText().split(",");
 						int numChildren = probSetInput.length;
-						Double[] newProbSet = new Double[numChildren];
+						double[] newProbSet = new double[numChildren];
 						for (int c = 0; c < numChildren; c++)
 							newProbSet[c] = Double.parseDouble(probSetInput[c]);
-						map.put(strategy, newProbSet);
+						if (probSets.size() > strategy)//TODO is this right?
+							probSets.add(strategy, newProbSet);
+						else
+							probSets.set(strategy, newProbSet);
 					}
-					selectedNode.setProbSets(map);
+					selectedNode.setProbSets(probSets);
 				case "npc":
 					if (isNPCBoxChecked)
 						selectedNode.setNPC();
@@ -535,11 +538,11 @@ public class DialogMaker {
 					filePath = saveDir + saveName;
 				}
 				
-				//Saves position of each node.
-				for (DialogNode n : nodeMap.values()) {
-					n.setX(((AbstractLayout<DialogNode, Double>) layout).getX(n));
-					n.setY(((AbstractLayout<DialogNode, Double>) layout).getY(n));
-				}	
+//				//Saves position of each node.
+//				for (DialogNode n : nodeMap.values()) {
+//					n.setX(((AbstractLayout<DialogNode, Double>) layout).getX(n));
+//					n.setY(((AbstractLayout<DialogNode, Double>) layout).getY(n));
+//				}	
 				
 				//Saves graph
 				dg.save(filePath);
@@ -633,7 +636,6 @@ public class DialogMaker {
 				if (source.getProbSets().size() > 0)
 					for (int c = 0; c < source.getChildren().length; c++)
 						if (source.getChildren()[c].equals(g.getDest(e))) {
-							Double[] a = source.getProbSets().get(strategy);
 							if (source.getProbSets().get(strategy) != null)
 								return Double.toString(source.getProbSets().get(strategy)[c]);
 							else //If node does not have probSet for that strategy, default to strategy 0.
@@ -650,9 +652,7 @@ public class DialogMaker {
 			new Factory<DialogNode>() {
 			@Override
 			public DialogNode create() {
-				HashMap<Integer, Double[]> emptyMap = new HashMap<Integer, Double[]>();
-				DialogNode[] emptyArray = new DialogNode[0];
-				DialogNode n = new DialogNode(isNPCBoxChecked, textField.getText(), emptyMap, emptyArray, 0, 0);
+				DialogNode n = new DialogNode(isNPCBoxChecked, textField.getText(), new ArrayList<double[]>(), new DialogNode[0]);
 				dg.addNode(n);
 				return n;
 			}
@@ -680,11 +680,11 @@ public class DialogMaker {
 		frame.pack();
 		frame.setVisible(true); 
 				
-		//Sets position of each node.
-		for (DialogNode n : nodeMap.values()) {
-			Point2D.Double point = new Point2D.Double(n.getX(), n.getY());
-			if (point.x != 0.0 && point.y != 0.0)
-				layout.setLocation(n, point);
-		}
+//		//Sets position of each node.
+//		for (DialogNode n : nodeMap.values()) {
+//			Point2D.Double point = new Point2D.Double(n.getX(), n.getY());
+//			if (point.x != 0.0 && point.y != 0.0)
+//				layout.setLocation(n, point);
+//		}
 	}
 }

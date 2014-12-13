@@ -16,7 +16,7 @@ There are also some more advanced things you can do that are not described here.
 */
 
 public class ExampleObject extends SimpleObject{ //TODO This object is a SimpleObject. If you want a SimpleSolid just change SimpleObject to SimpleSolid.
-	static File f = new File("resources/images/ExampleObject.png"); //TODO This is the filename of this object's icon.
+	static File f = new File("resources/images/objects/ExampleObject/ExampleObject.png"); //TODO This is the filename of this object's icon.
 	static Img img = DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName());
 
 	public ExampleObject() {

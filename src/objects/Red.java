@@ -1,4 +1,25 @@
-//Copyright (c) 2014 Mark Groeneveld
+/*The MIT License (MIT)
+
+Copyright (c) 2014 Mark Groeneveld
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+ */
 
 package objects;
 
@@ -31,22 +52,6 @@ import world.SimpleSolid;
  * Wears an old but in-good-condition backpack everywhere (I didn't put in the the low res figures yet)
  */
 
-/**
- * EXTRA ARGUMENTS
- * 
- * @param facingDirection
- *            0-3 indicating initial orientation.
- * @param isWandering
- *            Turns wandering on or off.
- * @param range
- *            Indicates maximum wander range in one step.
- * @param speed
- *            Wander speed in pixels / update call.
- * @param pauseTime
- *            Time between wanderings (in # of updates).
- * @param dialogFile
- *            Dialog file name
- */
 //TODO draw backpack for Red
 //TODO how are dialogs initiated?
 //TODO make character, player-character, and npc abstract classes?
@@ -76,25 +81,41 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	private int yDestination = 0;
 	private int xDestination = 0;
 	private int direction = 0;
-	private String dialogF = null;
+	private String dialogFile = null;
 	
 	private int wanderRange;
 	private int wanderSpeed;
 	private int wanderPause;
-	private boolean wandering = false;
+	private boolean isWandering = false;
 	private int counter = 0;
 	
 	public Red() {
 		this.setImage((Img) Standing[direction]);
 	}
 	
+	/**
+	 * EXTRA ARGUMENTS
+	 * 
+	 * @param facingDirection
+	 *            0-3 indicating initial orientation.
+	 * @param isWandering
+	 *            Turns wandering on or off.
+	 * @param range
+	 *            Indicates maximum wander range in one step.
+	 * @param speed
+	 *            Wander speed in pixels / update call.
+	 * @param pauseTime
+	 *            Time between wanderings (in # of updates).
+	 * @param dialogFile
+	 *            Dialog file name
+	 */
 	public Red(int facingDirection, boolean isWandering, int range, int speed, int pauseTime, String dialogFile) {
-		wanderRange = range;
-		wanderSpeed = speed;
-		wanderPause = pauseTime;
-		direction = facingDirection;
-		wandering = isWandering;
-		dialogF = dialogFile;
+		this.wanderRange = range;
+		this.wanderSpeed = speed;
+		this.wanderPause = pauseTime;
+		this.direction = facingDirection;
+		this.isWandering = isWandering;
+		this.dialogFile = dialogFile;
 		this.setImage((Img) Standing[direction]);
 	}
 	
@@ -123,11 +144,11 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 		wanderRange = range;
 		wanderSpeed = speed;
 		wanderPause = pauseTime;
-		wandering = true;
+		isWandering = true;
 	}
 	
 	public void stopWandering() {
-		wandering = false;
+		isWandering = false;
 	}
 	
 	public void stand() {
@@ -155,7 +176,7 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 		}
 		
 		//wandering
-		if (wandering) {
+		if (isWandering) {
 			counter ++;
 			if (counter >= wanderPause && moving == false) {
 				this.animatedMove(this.getX() + (int)(Math.random() * wanderRange) - (int)(wanderRange / 2), 
@@ -227,23 +248,23 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 	@Override
 	public SimpleObject getClone(String s) throws InputMismatchException, NoSuchElementException{
 		Scanner scanner = new Scanner(s);
-		SimpleObject temp = new Red(scanner.nextInt(), 
+		SimpleObject object = new Red(scanner.nextInt(), 
 				scanner.nextBoolean(), 
 				scanner.nextInt(), 
 				scanner.nextInt(), 
 				scanner.nextInt(), 
 				scanner.next());
 		scanner.close();
-		return temp;
+		return object;
 	}
 	
 	@Override
 	public String getDescription() {
 		return Integer.toString(direction)
-				+ " " + Boolean.toString(wandering)
+				+ " " + Boolean.toString(isWandering)
 				+ " " + Integer.toString(wanderRange)
 				+ " " + Integer.toString(wanderSpeed)
 				+ " " + Integer.toString(wanderPause)
-				+ " " + dialogF;
+				+ " " + dialogFile;
 	}
 }
