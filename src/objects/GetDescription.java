@@ -1,7 +1,5 @@
 package objects;
 
-import java.awt.image.BufferedImage;
-
 import desktopView.ColorImg;
 import sprite.Img;
 import world.SimpleObject;

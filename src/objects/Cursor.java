@@ -1,4 +1,25 @@
-//Copyright (c) 2014 Mark Groeneveld
+/*The MIT License (MIT)
+
+Copyright (c) 2014 Mark Groeneveld
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+ */
 
 package objects;
 
@@ -12,6 +33,8 @@ import world.SimpleObject;
 
 /**
  * Cursor for LevelBuilder
+ * Provides means of placing and removing objects.
+ * Listens for key presses and takes appropriate action.
  * This is a necessary component of LevelBuilder.
  * 
  * @author Mark Groeneveld
@@ -21,16 +44,24 @@ import world.SimpleObject;
 
 public class Cursor extends SimpleObject implements KeyListener{
 	private Img red;
-	private int xdir = 0, ydir = 0;
 	private int cellWidth = 20, cellHeight = 20;;
 	private int HMoveRate = cellWidth;
 	private int VMoveRate = cellHeight;
 	
+	/**
+	 * Default constructor.
+	 */
 	public Cursor(){
 		red = new ColorImg(0x40FF0000, cellWidth, cellHeight);
 		this.setImage(red);		
 	}
 	
+	/**
+	 * Constructor providing custom cell sizes.
+	 * 
+	 * @param w Cell width.
+	 * @param h Cell height.
+	 */
 	public Cursor(int w, int h){
 		cellWidth = w;
 		cellHeight = h;
@@ -44,11 +75,6 @@ public class Cursor extends SimpleObject implements KeyListener{
 
 	@Override
 	public void update() {
-		if (xdir != 0 || ydir != 0) {
-			this.move(xdir, ydir, true);
-			xdir = 0;
-			ydir = 0;
-		}
 	}
 
 	@Override
@@ -56,49 +82,68 @@ public class Cursor extends SimpleObject implements KeyListener{
 		return 0;
 	}
 
+	/**
+	 * Unused.
+	 */
 	@Override
-	public void keyTyped(KeyEvent e) {
-		
+	public void keyTyped(KeyEvent e) {	
 	}
 
+	/**
+	 * Listens for key presses and takes appropriate actions.
+	 */
 	@Override
 	public void keyPressed(KeyEvent e) {
-		//move cursor in a direction
-		if (e.getKeyCode() == KeyEvent.VK_LEFT)
-			xdir = -HMoveRate;
-		if (e.getKeyCode() == KeyEvent.VK_UP)
-			ydir = -VMoveRate;
-		if (e.getKeyCode() == KeyEvent.VK_RIGHT)
-			xdir = HMoveRate;
-		if (e.getKeyCode() == KeyEvent.VK_DOWN)
-			ydir = VMoveRate;
-		if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_LEFT:
+			this.move(-HMoveRate, 0, true);
+			break;
+		case KeyEvent.VK_UP:
+			this.move(0, -VMoveRate, true);
+			break;
+		case KeyEvent.VK_RIGHT:
+			this.move(HMoveRate, 0, true);
+			break;
+		case KeyEvent.VK_DOWN:
+			this.move(0, VMoveRate, true);
+			break;
+		case KeyEvent.VK_SHIFT:
 			HMoveRate = cellWidth * 10;
 			VMoveRate = cellHeight * 10;
-		}
-		if (e.getKeyCode() == KeyEvent.VK_ALT) {
+			break;
+		case KeyEvent.VK_ALT:
 			HMoveRate = 1;
 			VMoveRate = 1;
-		}
-		if (e.getKeyCode() == KeyEvent.VK_SPACE)
+			break;
+		case KeyEvent.VK_SPACE:
 			LevelBuilder.placeObject();
-		if (e.getKeyCode() == KeyEvent.VK_R)
+			break;
+		case KeyEvent.VK_R:
 			LevelBuilder.removeSolid();
-		if (e.getKeyCode() == KeyEvent.VK_S)
+			break;
+		case KeyEvent.VK_S:
 			LevelBuilder.saveLevel();
-		if (e.getKeyCode() == KeyEvent.VK_O)
-			LevelBuilder.removeObjectFirst();
+			break;
+		case KeyEvent.VK_O:
+			LevelBuilder.placeObjectRemover();
+			break;
+		}
 	}
 
+	/**
+	 * Listens for key releases and takes appropriate actions.
+	 */
 	@Override
 	public void keyReleased(KeyEvent e) {
-		if (e.getKeyCode() == KeyEvent.VK_SHIFT) {
+		switch (e.getKeyCode()) {
+		case KeyEvent.VK_SHIFT:
 			HMoveRate = cellWidth;
 			VMoveRate = cellHeight;
-		}
-		if (e.getKeyCode() == KeyEvent.VK_ALT) {
+			break;
+		case KeyEvent.VK_ALT:
 			HMoveRate = cellWidth;
 			VMoveRate = cellHeight;
+			break;
 		}
 	}
 }
