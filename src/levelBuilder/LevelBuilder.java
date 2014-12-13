@@ -1,4 +1,25 @@
-//Copyright (c) 2014 Mark Groeneveld
+/*The MIT License (MIT)
+
+Copyright (c) 2014 Mark Groeneveld
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+ */
 
 package levelBuilder;
 
@@ -16,15 +37,20 @@ import java.io.FileNotFoundException;
 import java.io.FilenameFilter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.Scanner;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 
+import control.DesktopControl;
+import desktopView.DesktopCanvas;
 import desktopView.DesktopImgUpload;
-
+import desktopView.EditorCanvas;
 import objects.*;
 import world.SimpleMap;
 import world.SimpleMapIO;
@@ -34,15 +60,15 @@ import world.SimpleWorld;
 import world.SimpleWorldFactory;
 
 /**
- * Builds game levels based on SSEngine
+ * Build game levels based on SSEngine
  * 
  * @author Mark Groeneveld
  * @author Brian Nakayama
- * @version 1.01
+ * @version 1.00
  */
 
 //TODO expand object selection window to deal with many objects
-//TODO make option so updates don't happen, so moving objects stay where you put them
+//TODO fix object icon displaying by creating a new canvas or something
 public class LevelBuilder{
 	private static int cellWidth; //pixels
 	private static int cellHeight;
@@ -55,21 +81,30 @@ public class LevelBuilder{
 	private static String backgroundFileName;
 	private static String saveName = "New File";
 	private static int objectType = 1;
-	private static SimpleMap m;
-	private static SimpleWorld w;
+	private static SimpleMap map;
+	private static SimpleWorld world;
 	private static Cursor cursor; 
 	private static Constructor<SimpleObject>[] constructors;
+	private static Class<SimpleObject>[] classes;
 	private static SimpleWorldFactory swf = new SimpleWorldFactory();
-	private static int[] id;
-	private static JTextField argField;
+	private static int[] objectIDs;
+	private static JTextField extraParametersInputField;
+	private static JLabel extraParametersTypeField;//, extraParametersDescriptionField;
 	private static SimpleObject objectToRemove = null;
 	
+	/**
+	 * Program starts here. Loads resources and starts the user interface.
+	 * 
+	 * @param args Not used.
+	 */
 	public static void main(String[] args){
 		loadResources();
 		splashWindow();
 	}
 	
-	@SuppressWarnings("unchecked")
+	/**
+	 * Loads objects from objects folder.
+	 */
 	private static void loadResources(){
 		FilenameFilter objectFilter = new FilenameFilter() {
 		    public boolean accept(File directory, String fileName) {
@@ -101,19 +136,19 @@ public class LevelBuilder{
 		
 		//get constructors for objects in objects folder
 		String fileName;
+		classes = new Class[objectFiles.length];
 		for (int i = 0; i < objectFiles.length; i++) {
-			Class c = null;
+			classes[i] = null;
 			try {
 				fileName = objectFiles[i].getName();
-				
-				c = Class.forName("objects." + fileName.substring(0, fileName.lastIndexOf('.')));
+				classes[i] = (Class<SimpleObject>) Class.forName("objects." + fileName.substring(0, fileName.lastIndexOf('.')));
 			} catch (ClassNotFoundException e2) {
 				e2.printStackTrace();
 			}
 			
 			constructors[i] = null;
 			try {
-				constructors[i] = c.getConstructor();
+				constructors[i] = classes[i].getConstructor();
 			} catch (NoSuchMethodException e1) {
 				e1.printStackTrace();
 			} catch (SecurityException e1) {
@@ -122,9 +157,9 @@ public class LevelBuilder{
 		}
 		
 		//register objects in SimpleWorldFactory
-		for (int i = 0; i < constructors.length; i++){
+		for (Constructor<SimpleObject> c : constructors){
 			try {
-				swf.register((SimpleObject) constructors[i].newInstance());
+				swf.register(c.newInstance());
 			} catch (InstantiationException e) {
 				e.printStackTrace();
 			} catch (IllegalAccessException e) {
@@ -137,17 +172,17 @@ public class LevelBuilder{
 		}
 		
 		//gets id for each object and puts in id array
-		id = new int[constructors.length];
+		objectIDs = new int[constructors.length];
 		for (int i  = 0; i < constructors.length; i++) {
 			try {
-				id[i] = ((SimpleObject) constructors[i].newInstance()).id();
+				objectIDs[i] = ((SimpleObject) constructors[i].newInstance()).id();
 			} catch (InstantiationException | IllegalAccessException
 					| IllegalArgumentException | InvocationTargetException e) {
 				e.printStackTrace();
 			}
 			
 			//checks for duplicate id's
-			int index = Arrays.binarySearch(id, 0, i, id[i]);
+			int index = Arrays.binarySearch(objectIDs, 0, i, objectIDs[i]);
 			if (index >= 0) {
 				JOptionPane.showMessageDialog(null, "Duplicate object ID's between " + objectFiles[i].getName() + " and "
 						+ objectFiles[index].getName() + ". Change one to continue.", null, JOptionPane.PLAIN_MESSAGE);
@@ -156,7 +191,11 @@ public class LevelBuilder{
 		}
 	}
 
-	//loads extra-map configuration options like window size
+	/**
+	 * Loads extra-map configuration options such as window size.
+	 * 
+	 * @param configPath File path for configuration file.
+	 */
 	private static void readConfig(String configPath){
 		Scanner scanner = null;
 		try {
@@ -184,7 +223,11 @@ public class LevelBuilder{
 		scanner.close();
 	}
 	
-	//saves extra-map configuration options like window size
+	/**
+	 * Saves extra-map configuration options such as window size.
+	 * 
+	 * @param configPath File path for configuration file.
+	 */
 	private static void writeConfig(String configPath) {
 		File configFile = new File(configPath);
 		try {
@@ -209,26 +252,26 @@ public class LevelBuilder{
 		writer.close();
 	}
 	
+	/**
+	 * Brings up dialog for selecting and loading levels. Also loads that level's config file and starts the level. 
+	 */
 	private static void loadLevel(){	
-		//load dialog and loading mechanism
 		File savesFolder = new File("saves");
 		File[] saves = savesFolder.listFiles(saveFilter);
-		if (savesFolder.exists()){
-			if (saves.length > 0){
+		if (savesFolder.exists()) {
+			if (saves.length > 0) {
 				String[] saveNames = savesFolder.list(saveFilter);
 				String saveName = (String) JOptionPane.showInputDialog(null, "Which save file would you like to load?",
 						"Choose!", JOptionPane.PLAIN_MESSAGE, null, saveNames, saveNames[0]);
-				if (saveName == null) {
+				if (saveName == null)
 					splashWindow();
-				}
 				else {					
 					String mapPath = "saves/" + saveName;
 					SimpleMapIO IOObj = new SimpleMapIO(mapPath, swf);
 					IOObj.openMap(true);
-					m = IOObj.readMap();
+					map = IOObj.readMap();
 					IOObj.closeMap();
-					if (m != null) {
-						//loads extra-map configuration options like window size
+					if (map != null) {
 						readConfig(mapPath.substring(0, mapPath.lastIndexOf('.') + 1) + "cfg");
 						startMapAndWorld();
 					}
@@ -247,7 +290,10 @@ public class LevelBuilder{
 		
 	}
 	
-	public static void saveLevel(){
+	/**
+	 * Brings up level saving dialog and saves level.
+	 */
+	public static void saveLevel() {
 		File savesFolder = new File("saves");
 		if (!savesFolder.exists())
 			savesFolder.mkdir();
@@ -257,12 +303,12 @@ public class LevelBuilder{
 		}
 		saveNames[saveNames.length-1] = "New File";
 
-		if (saveNames.length > 0){		
+		if (saveNames.length > 0) {		
 			String mapPath;
-			saveName = (String) JOptionPane.showInputDialog(w, "Choose file to overwrite, or a new file",
+			saveName = (String) JOptionPane.showInputDialog(null, "Choose file to overwrite, or a new file",
 					"Choose!", JOptionPane.PLAIN_MESSAGE, null, saveNames, saveName);
 			if (saveName == "New File") {
-				mapPath = JOptionPane.showInputDialog(w, "New file name", "Write!", JOptionPane.PLAIN_MESSAGE);
+				mapPath = JOptionPane.showInputDialog(null, "New file name", "Write!", JOptionPane.PLAIN_MESSAGE);
 				mapPath = "saves/" + mapPath + ".map";
 			}
 			else if (saveName == null) {
@@ -273,28 +319,32 @@ public class LevelBuilder{
 			}
 			
 			//temporarily removes cursor so it isn't in the save file
-			m.removeSimpleObject(cursor);
+			map.removeSimpleObject(cursor);
 			SimpleMapIO IOObj = new SimpleMapIO(mapPath, swf);
 			IOObj.openMap(false);
-			if (IOObj.writeMap(m)) {
+			if (IOObj.writeMap(map)) {
 				JOptionPane.showMessageDialog(null, "Map Saved!", null, JOptionPane.PLAIN_MESSAGE);
-				//save extra-map configuration like window size
 				writeConfig(mapPath.substring(0, mapPath.lastIndexOf('.') + 1) + "cfg");
 			}
-			else {
+			else
 				JOptionPane.showMessageDialog(null, "Error, map not saved :-(", null, JOptionPane.PLAIN_MESSAGE);
-			}
-			m.addSimpleObject(cursor, cursor.getX(), cursor.getY());
+			map.addSimpleObject(cursor, cursor.getX(), cursor.getY());
 			IOObj.closeMap();
 		}	
 	}
-			
+	
+	/**
+	 * A filter that only lets through .map files.
+	 */
 	private static FilenameFilter saveFilter = new FilenameFilter() {
 	    public boolean accept(File directory, String fileName) {
 	        return fileName.endsWith(".map");
 	    }
 	};
 
+	/**
+	 * Brings up the new level dialog with configuration options and starts the level.
+	 */
 	private static void newLevel(){		
 		JPanel panel = new JPanel();
 		JPanel labels = new JPanel(new GridLayout(0,1,0,12));
@@ -328,9 +378,8 @@ public class LevelBuilder{
 		panel.add(labels, BorderLayout.WEST);
 		panel.add(input, BorderLayout.EAST);
 		
-		int result = JOptionPane.showConfirmDialog(null, panel, "Map Initialization", JOptionPane.OK_CANCEL_OPTION,
-				JOptionPane.PLAIN_MESSAGE);
-		if (result == JOptionPane.OK_OPTION) {
+		if (JOptionPane.OK_OPTION == JOptionPane.showConfirmDialog(null, panel, "Map Initialization", 
+				JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE)) {
 			mapHeight = Integer.parseInt(mch.getText());
 			mapWidth = Integer.parseInt(mcw.getText());
 			windowHeight = Integer.parseInt(wh.getText());
@@ -340,7 +389,7 @@ public class LevelBuilder{
 			levelName = ln.getText();
 			backgroundFileName = bg.getText();
 			
-			m = new SimpleMap(mapWidth, mapHeight, cellWidth, cellHeight);
+			map = new SimpleMap(mapWidth, mapHeight, cellWidth, cellHeight);
 			startMapAndWorld();
 			
 			//visual markers at edges of map to see where the cursor is in comparison to something
@@ -349,38 +398,50 @@ public class LevelBuilder{
 //			m.addSimpleObject(new BlackSolid(), mapWidth * cellWidth-cellWidth, mapHeight * cellHeight-cellHeight);
 //			m.addSimpleObject(new MLearnerSolid(), mapWidth * cellWidth-cellWidth, 0);
 		}
-		else {
+		else
 			splashWindow();
-		}
 	}
 	
-	//instantiates map, world, cursor, keylisteners, camera, and starts game loop
+	/**
+	 * Instantiates map, world, cursor, keylisteners, camera, and starts the game loop.
+	 * Also loads a background image and opens secondary windows.
+	 */
 	private static void startMapAndWorld(){
 		cursor = new Cursor(cellWidth, cellHeight);
-		m.addSimpleObject(cursor, cellWidth, cellHeight);
-		w = new SimpleWorld(m, windowWidth, windowHeight, "Space Game Level Builder: " + levelName);
-		w.addKeyListener(cursor);
-		w.setCameraStalk(cursor);
-		w.start(false);
+		map.addSimpleObject(cursor, cellWidth, cellHeight);
+		DesktopCanvas desktopCanvas = new DesktopCanvas(windowWidth, windowHeight, "Level Builder: " + levelName);
+		DesktopControl desktopControl = DesktopControl.getInstance();
+		desktopControl.setCanvas(desktopCanvas);
+		world = new SimpleWorld(map, desktopControl); 
+		desktopCanvas.addKeyListener(cursor);
+		world.setCameraStalk(cursor);
+		world.start(false);
+		world.disableUpdate();
 		
 		File f = new File("resources/images/" + backgroundFileName);
 		if (f.exists())
-			w.setBGImage(DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
+			world.setBGImage(DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()));
 		
 		selectObjectTypeWindow();
 		extraArgumentsWindow();
 		instructionsWindow();
 	}
 	
+	/**
+	 * Adds and object to the map.
+	 */
 	public static void placeObject(){
 		try {
-			swf.addSimpleObject(id[objectType], cursor.getX(), cursor.getY(), argField.getText(), m);
+			swf.addSimpleObject(objectIDs[objectType], cursor.getX(), cursor.getY(), extraParametersInputField.getText(), map);
 		}
 		catch (Exception e) {
-			JOptionPane.showMessageDialog(w, "Incorrect extra arguments for object", null, JOptionPane.PLAIN_MESSAGE);
+			JOptionPane.showMessageDialog(null, "Incorrect extra arguments for object", null, JOptionPane.PLAIN_MESSAGE);
 		}
 	}
 	
+	/**
+	 * Special object used for removing other objects.
+	 */
 	private static SimpleObject remover = new SimpleSolid() {
 		@Override
 		public void collision(SimpleObject s) {
@@ -390,7 +451,7 @@ public class LevelBuilder{
 	
 		@Override
 		public void update() {
-			removeObjectSecond();
+			removeObject();
 		}
 	
 		@Override
@@ -399,21 +460,33 @@ public class LevelBuilder{
 		}
 	};
 
-	public static void removeObjectFirst(){
-		m.addSimpleObject(remover, cursor.getX(), cursor.getY());
+	/**
+	 * Adds remover object to the map.
+	 */
+	public static void placeObjectRemover(){
+		map.addSimpleObject(remover, cursor.getX(), cursor.getY());
 	}
 	
-	private static void removeObjectSecond(){
+	/**
+	 * Removes specified object and the remover from the map.
+	 */
+	private static void removeObject(){
 		if (objectToRemove != null)
-			m.removeSimpleObject(objectToRemove);
+			map.removeSimpleObject(objectToRemove);
 		objectToRemove = null;
-		m.removeSimpleObject(remover);
+		map.removeSimpleObject(remover);
 	}
 
+	/**
+	 * Removes a solid object from the map.
+	 */
 	public static void removeSolid(){
-		m.removeSimpleSolid(cursor.getX() / cellWidth, cursor.getY() / cellHeight);
+		map.removeSimpleSolid(cursor.getX() / cellWidth, cursor.getY() / cellHeight);
 	}
 	
+	/**
+	 * Initial window in the game. Provides options of loading a level or creating a new one.
+	 */
 	private static void splashWindow(){	
 		final JFrame splashFrame = new JFrame("LevelBuilder");
 		
@@ -421,20 +494,29 @@ public class LevelBuilder{
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				splashFrame.dispose();
-				if (e.getActionCommand().equals("loadMap"))
+				switch (e.getActionCommand()) {
+				case "loadMap":
 					loadLevel();
-				else
+					break;
+				case "newMap":
 					newLevel();
+					break;
+				}
 			}
 		}
 		
-		File f = new File("resources/images/splash.png");
-		final BufferedImage img = DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName()).getSlide();			
+		Image img1 = null;
+		try {
+			img1 = ImageIO.read(new File("resources/images/LevelBuilder/splash.png"));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		final Image img2 = img1;
 		JPanel BGPanel = new JPanel(){
 			@Override
 			protected void paintComponent(Graphics g) {
 				super.paintComponent(g);
-		        g.drawImage(img, 0, 0, null);
+		        g.drawImage(img2, 0, 0, null);
 			}
 		};
 		
@@ -464,17 +546,33 @@ public class LevelBuilder{
 		splashFrame.setVisible(true);
 	}
 
-	//selects object type to place
+	/**
+	 * Displays window showing available objects and provides for their selection.
+	 */
 	private static void selectObjectTypeWindow(){
 		class ObjectTypeActionHandler implements ActionListener {
 			@Override
 			public void actionPerformed(ActionEvent e) {
+				//Sets active object type.
 				objectType = Integer.parseInt(e.getActionCommand());
+				
+				//Updates label displaying types of extra parameters.
+				String typesText = "";
+				for (Class t : classes[objectType].getConstructors()[0].getParameterTypes())
+					typesText += t.getName() + " ";
+				extraParametersTypeField.setText(typesText);
+				
+				//Updates label displaying names of extra parameters.
+//				Annotation[][] annotations = objConstructors[0].getParameterAnnotations();
+//				String namesText = "";
+//				for (Annotation[] parameter: annotations)
+//					for (Annotation a : parameter)
+//						System.out.println(a.toString());
 			}
 		}
 
-		JPanel masterPanel = new JPanel(new GridLayout(0,2,0,0));
-		JPanel labelPanel = new JPanel(new GridLayout(0,1,0,0));
+		JPanel masterPanel = new JPanel(new GridLayout(0,1,0,0));
+//		JPanel labelPanel = new JPanel(new GridLayout(0,1,0,0));
 		JPanel buttonPanel = new JPanel(new GridLayout(0,1,0,0));
 		JButton[] button = new JButton[constructors.length];
 		
@@ -484,26 +582,29 @@ public class LevelBuilder{
 		for (int i = 1; i < constructors.length; i++) {
 			name = constructors[i].getName();
 			
-			try {
-				img = ((SimpleObject) constructors[i].newInstance()).getImage().getSlide();
-			} catch (InstantiationException e) {
-				e.printStackTrace();
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			} catch (IllegalArgumentException e) {
-				e.printStackTrace();
-			} catch (InvocationTargetException e) {
-				e.printStackTrace();
-			}
-			labelPanel.add(new JLabel(name.substring(name.lastIndexOf('.') + 1, name.length()), 
-					new ImageIcon(img.getScaledInstance(cellWidth, cellHeight, Image.SCALE_FAST)), SwingConstants.LEFT));
-			button[i] = new JButton("<--");
+//			try {
+//				img = (BufferedImage) ((SimpleObject) constructors[i].newInstance()).getImage();
+//			} catch (InstantiationException e) {
+//				e.printStackTrace();
+//			} catch (IllegalAccessException e) {
+//				e.printStackTrace();
+//			} catch (IllegalArgumentException e) {
+//				e.printStackTrace();
+//			} catch (InvocationTargetException e) {
+//				e.printStackTrace();
+//			}
+//			labelPanel.add(new JLabel(name.substring(name.lastIndexOf('.') + 1, name.length()), 
+//					new ImageIcon(img.getScaledInstance(cellWidth, cellHeight, Image.SCALE_FAST)), SwingConstants.LEFT));
+//			labelPanel.add(new JLabel(name.substring(name.lastIndexOf('.') + 1, name.length()), 
+//					null, SwingConstants.LEFT));
+//			button[i] = new JButton("<--");
+			button[i] = new JButton(name.substring(name.lastIndexOf('.') + 1, name.length()));
 			button[i].setActionCommand(Integer.toString(i));
 			button[i].addActionListener(new ObjectTypeActionHandler());
 			buttonPanel.add(button[i]);
 		}
 		
-		masterPanel.add(labelPanel, BorderLayout.WEST);
+//		masterPanel.add(labelPanel, BorderLayout.WEST);
 		masterPanel.add(buttonPanel, BorderLayout.EAST);
 		
 		JFrame frame = new JFrame("Available Objects");
@@ -517,12 +618,23 @@ public class LevelBuilder{
 		verticalWindowPlacement += frame.getBounds().height + frame.getBounds().y;
 	}
 
+	/**
+	 * Displays window allowing extra arguments to be used for placing certain objects.
+	 * Also displays extra arguments necessary for placement of currently selected object.
+	 */
 	private static void extraArgumentsWindow() {
-		JPanel panel = new JPanel();
-		argField = new JTextField("", 20);
-		panel.add(argField);
+		JPanel panel = new JPanel(new GridLayout(0,1,0,0));
+		
+//		extraParametersDescriptionField = new JLabel();
+//		panel.add(extraParametersDescriptionField);
+		
+		extraParametersTypeField = new JLabel();
+		panel.add(extraParametersTypeField);
+		
+		extraParametersInputField = new JTextField("", 20);
+		panel.add(extraParametersInputField);
+		
 		JFrame frame = new JFrame("Extra Arguments");
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		panel.setOpaque(true);
 		frame.setContentPane(panel);
 		frame.pack();
@@ -532,6 +644,9 @@ public class LevelBuilder{
 		verticalWindowPlacement += frame.getBounds().height;
 	}
 	
+	/**
+	 * Displays window providing instructions on how to use the program.
+	 */
 	private static void instructionsWindow() {
 		JFrame frame = new JFrame("Instructions");
 		JPanel panel = new JPanel();

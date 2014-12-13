@@ -1,15 +1,13 @@
 package objects;
 
-import java.awt.image.BufferedImage;
-
-import sprite.ColorImg;
+import desktopView.ColorImg;
 import sprite.Img;
 import world.SimpleObject;
 
 public class Sign extends SimpleObject{
-//	private Img<BufferedImage> defaultImg = new TextImg("T", 20, 20);
-	private Img<BufferedImage> defaultImg = new ColorImg(0x40FF0000, 20, 20);
-	private Img<BufferedImage> img;
+//	private Img defaultImg = new TextImg("T", 20, 20);
+	private Img defaultImg = new ColorImg(0x40FF0000, 20, 20);
+	private Img img;
 	private String description = "";
 	
 	public Sign() {
