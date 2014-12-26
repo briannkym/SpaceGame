@@ -6,6 +6,7 @@ import world.SimpleObject;
 
 //Place this object over another to have its getDescription() printed to console.
 public class GetDescription extends SimpleObject{	
+	public static int ID = generateID();
 	private static Img img = new ColorImg(0x70000000, 20, 20);
 	private boolean printed = false;
 	private int counter = 0;
@@ -32,7 +33,7 @@ public class GetDescription extends SimpleObject{
 
 	@Override
 	public int id() {
-		return 1;
+		return ID;
 	}
 
 }

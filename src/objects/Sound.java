@@ -6,6 +6,8 @@ import world.SimpleObject;
 import world.SimpleSolid;
 
 public class Sound extends SimpleSolid{
+	public static int ID = generateID();
+	
 	private static int population = 0;
 	private final Img solidBlue = new ColorImg(0xFF0000FF, 20, 20);
 	
@@ -25,6 +27,6 @@ public class Sound extends SimpleSolid{
 
 	@Override
 	public int id() {
-		return 3;
+		return ID;
 	}
 }

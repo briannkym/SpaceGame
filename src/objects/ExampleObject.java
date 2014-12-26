@@ -16,6 +16,7 @@ There are also some more advanced things you can do that are not described here.
 */
 
 public class ExampleObject extends SimpleObject{ //TODO This object is a SimpleObject. If you want a SimpleSolid just change SimpleObject to SimpleSolid.
+	public static int ID = generateID();
 	static File f = new File("resources/images/objects/ExampleObject/ExampleObject.png"); //TODO This is the filename of this object's icon.
 	static Img img = DesktopImgUpload.getInstance(f.getParentFile()).getImg(f.getName());
 
@@ -37,6 +38,6 @@ public class ExampleObject extends SimpleObject{ //TODO This object is a SimpleO
 
 	@Override
 	public int id() {
-		return 4; //TODO Every object needs a unique ID. Change this number to the next available one. 
+		return ID; //TODO Every object needs a unique ID. Change this number to the next available one. 
 	}
 }

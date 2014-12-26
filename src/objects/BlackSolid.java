@@ -6,6 +6,7 @@ import world.SimpleSolid;
 import world.SimpleObject;
 
 public class BlackSolid extends SimpleSolid{
+	public static int ID = generateID();
 	static Img img = new ColorImg(0xFF000000, 20, 20);
 	
 	public BlackSolid(){
@@ -22,6 +23,6 @@ public class BlackSolid extends SimpleSolid{
 
 	@Override
 	public int id() {
-		return 2;
+		return ID;
 	}
 }

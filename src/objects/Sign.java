@@ -5,7 +5,10 @@ import sprite.Img;
 import world.SimpleObject;
 
 public class Sign extends SimpleObject{
-//	private Img defaultImg = new TextImg("T", 20, 20);
+
+	public static int ID = generateID();
+	
+	//	private Img defaultImg = new TextImg("T", 20, 20);
 	private Img defaultImg = new ColorImg(0x40FF0000, 20, 20);
 	private Img img;
 	private String description = "";
@@ -30,7 +33,7 @@ public class Sign extends SimpleObject{
 
 	@Override
 	public int id() {
-		return 5;
+		return ID;
 	}
 	
 	@Override

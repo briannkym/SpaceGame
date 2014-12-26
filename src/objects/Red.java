@@ -56,6 +56,8 @@ import world.SimpleSolid;
 //TODO how are dialogs initiated?
 //TODO make character, player-character, and npc abstract classes?
 public class Red extends SimpleSolid{ //TODO Change Red to your character's name.
+	public static int ID = generateID();
+	
 	static private String imgDir = "resources/images/objects/Red/"; //TODO Change "Red" to your character's name. This is the subfolder where your images are stored.
 	static private File f1 = new File(imgDir + "FrontRun.png");
 	static private File f2 = new File(imgDir + "FrontStand.png");	
@@ -242,7 +244,7 @@ public class Red extends SimpleSolid{ //TODO Change Red to your character's name
 
 	@Override
 	public int id() {
-		return 6;
+		return ID;
 	}
 	
 	@Override

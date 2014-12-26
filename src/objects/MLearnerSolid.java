@@ -6,6 +6,7 @@ import world.SimpleObject;
 import world.SimpleSolid;
 
 public class MLearnerSolid extends SimpleSolid{
+	public static int ID = generateID();
 	private static final Img solidRed = new ColorImg(0xFFFF0000, 20, 20);
 	private static int population = 0;
 	private int id;
@@ -28,6 +29,6 @@ public class MLearnerSolid extends SimpleSolid{
 
 	@Override
 	public int id() {
-		return 7;
+		return ID;
 	}
 }

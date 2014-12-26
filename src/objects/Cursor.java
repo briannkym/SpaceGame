@@ -43,6 +43,8 @@ import world.SimpleObject;
  */
 
 public class Cursor extends SimpleObject implements KeyListener{
+	public static int ID = generateID();
+	
 	private Img red;
 	private int cellWidth = 20, cellHeight = 20;;
 	private int HMoveRate = cellWidth;
@@ -79,7 +81,7 @@ public class Cursor extends SimpleObject implements KeyListener{
 
 	@Override
 	public int id() {
-		return 0;
+		return ID;
 	}
 
 	/**

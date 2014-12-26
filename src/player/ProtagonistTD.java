@@ -144,8 +144,7 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 
 	@Override
 	public int id() {
-		// TODO Auto-generated method stub
-		return 0;
+		return ID;
 	}
 
 }

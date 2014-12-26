@@ -2,11 +2,13 @@ package player;
 
 import main.SpaceGame;
 import sprite.Img;
+import world.SimpleObject;
 
 
 public interface Protagonist {
 	public static final int down = 0, right = 1, up = 2, left = 3;
 	public static final int sDown = 4, sRight = 5, sUp = 6, sLeft = 7;
+	public static final int ID = SimpleObject.generateID();
 
 	public static final Img iUp = SpaceGame.dc.getImg("resources/images/Prot/protagonist-N.png");
 	public static final Img iRight = SpaceGame.dc.getImg("resources/images/Prot/protagonist-E.png");

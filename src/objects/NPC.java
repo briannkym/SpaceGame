@@ -8,7 +8,8 @@ import world.SimpleObject;
 import world.SimpleSolid;
 
 public class NPC extends SimpleSolid{
-
+	public static int ID = generateID();
+	
 	public static final Img iUp = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-N.png");
 	public static final Img iRight = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-E.png");
 	public static final Img iDown = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-S.png");
@@ -102,7 +103,7 @@ public class NPC extends SimpleSolid{
 	@Override
 	public int id() {
 		// TODO Auto-generated method stub
-		return 0;
+		return ID;
 	}
 
 
