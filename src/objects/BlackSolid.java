@@ -7,7 +7,7 @@ import world.SimpleObject;
 
 public class BlackSolid extends SimpleSolid{
 	public static int ID = generateID();
-	static Img img = new ColorImg(0xFF000000, 20, 20);
+	static Img img = new ColorImg(0xFF000000, 16, 16);
 	
 	public BlackSolid(){
 		this.setImage(img);

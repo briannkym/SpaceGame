@@ -32,6 +32,12 @@ public class DesktopListener implements KeyListener{
 		case KeyEvent.VK_LEFT:
 			p.update(Protagonist.left);
 			break;
+		case KeyEvent.VK_A:
+			p.update(Protagonist.action1);
+			break;
+		case KeyEvent.VK_S:
+			p.update(Protagonist.action2);
+			break;
 		}
 	}
 
@@ -49,6 +55,12 @@ public class DesktopListener implements KeyListener{
 			break;
 		case KeyEvent.VK_LEFT:
 			p.update(Protagonist.sLeft);
+			break;
+		case KeyEvent.VK_A:
+			p.update(Protagonist.sAction1);
+			break;
+		case KeyEvent.VK_S:
+			p.update(Protagonist.sAction2);
 			break;
 		}
 	}

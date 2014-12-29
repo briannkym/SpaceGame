@@ -15,13 +15,18 @@ public class ProtagonistSS extends SimpleSolid implements Protagonist {
 	int acc_x = 0;
 	int acc_y = 0;
 
+	int direction = D_NORTH;
 	int gravity = 2;
+	int max_grav_coeff = 7;
 	int jump = 7;
 	int speed = 4;
-	
-	int direction = D_NORTH;
-	
+
 	boolean grounded = true;
+
+	public ProtagonistSS() {
+		setImage(prot[down][right]);
+		getImage().accept(pause);
+	}
 
 	@Override
 	public void update(int command) {
@@ -29,29 +34,35 @@ public class ProtagonistSS extends SimpleSolid implements Protagonist {
 		case down:
 			break;
 		case up: {
-			if(grounded){
+			if (grounded) {
 				ver_vel = -jump;
 			}
 		}
 			break;
 		case left:
 			hor_vel = -speed;
+			setImage(prot[down][left]);
+			getImage().accept(resume);
 			break;
 		case right:
 			hor_vel = speed;
+			setImage(prot[down][right]);
+			getImage().accept(resume);
 			break;
 		case sDown:
 			break;
 		case sUp:
 			break;
 		case sLeft:
-			if (speed < 0){
+			if (hor_vel < 0) {
 				hor_vel = 0;
+				getImage().accept(pause);
 			}
 			break;
 		case sRight:
-			if (speed > 0){
+			if (hor_vel > 0) {
 				hor_vel = 0;
+				getImage().accept(pause);
 			}
 			break;
 		}
@@ -64,50 +75,51 @@ public class ProtagonistSS extends SimpleSolid implements Protagonist {
 
 	@Override
 	public void collision(SimpleObject s) {
-		// TODO Auto-generated method stub
-
+		
 	}
 
 	@Override
 	public void update() {
-		SimpleSolid ground;
 		grounded = false;
-		switch (direction){
+		switch (direction) {
 		case D_NORTH:
-			if((ground = getSolid(0, ver_vel, true))!= null){
+			if(!move(0, ver_vel, true)){
+				move(0, ver_vel, -1);
 				grounded = true;
-				ver_vel = ground.getY() - getMap().cellHeight - getY();
+				ver_vel = 0;
 			}
-			move(0, ver_vel, true);
 			move(hor_vel, 0, 2);
 			break;
 		case D_WEST:
-			if((ground = getSolid(ver_vel, 0, true))!= null){
+			if(!move(ver_vel, 0, true)){
+				move(ver_vel, 0, -1);
 				grounded = true;
-				ver_vel = ground.getX() - getMap().cellWidth - getX();
+				ver_vel = 0;
 			}
-			move(ver_vel, 0, true);
 			move(0, -hor_vel, 2);
 			break;
 		case D_EAST:
-			if((ground = getSolid(-ver_vel, 0, true))!= null){
+			if(!move(-ver_vel, 0, true)){
+				move(-ver_vel, 0, -1);
 				grounded = true;
-				ver_vel = ground.getX() + getMap().cellWidth - getX();
+				ver_vel = 0;
 			}
-			move(-ver_vel, 0, true);
 			move(0, hor_vel, 2);
 			break;
 		case D_SOUTH:
-			if((ground = getSolid(0, -ver_vel, true))!= null){
+			if(!move(0, -ver_vel, true)){
+				move(0, -ver_vel, -1);
 				grounded = true;
-				ver_vel = ground.getY() + getMap().cellHeight - getY();
+				ver_vel = 0;
 			}
-			move(0, -ver_vel, true);
 			move(-hor_vel, 0, 2);
 			break;
 		}
+
+		if (ver_vel != gravity *max_grav_coeff){
+			ver_vel += gravity;
+		}
 		
-		ver_vel -= gravity;
 	}
 
 	@Override

@@ -4,16 +4,19 @@ import main.SpaceGame;
 import sprite.Anm;
 import sprite.Img;
 import sprite.ImgCommand;
+import sprite.ImgUpload;
 import world.SimpleObject;
 import world.SimpleSolid;
 
 public class NPC extends SimpleSolid{
 	public static int ID = generateID();
 	
-	public static final Img iUp = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-N.png");
-	public static final Img iRight = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-E.png");
-	public static final Img iDown = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-S.png");
-	public static final Img iLeft = SpaceGame.dc.getImg("resources/images/Wheels/Wheels-W.png");
+	public static final ImgUpload wheels = SpaceGame.dc.getImgUpload("resources/images/Wheels/");
+	
+	public static final Img iUp = wheels.getImg("Wheels-N.png");
+	public static final Img iRight = wheels.getImg("Wheels-E.png");
+	public static final Img iDown = wheels.getImg("Wheels-S.png");
+	public static final Img iLeft = wheels.getImg("Wheels-W.png");
 	
 	public static final int down = 0, right = 1, up = 2, left = 3;
 	public static final int sDown = 4, sRight = 5, sUp = 6, sLeft = 7;

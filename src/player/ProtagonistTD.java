@@ -1,8 +1,5 @@
 package player;
 
-import sprite.Anm;
-import sprite.Img;
-import sprite.ImgCommand;
 import world.SimpleObject;
 import world.SimpleSolid;
 
@@ -20,31 +17,10 @@ import world.SimpleSolid;
 public class ProtagonistTD extends SimpleSolid implements Protagonist {
 
 	private int move = 0;
-	private int direction = down;
-	private ImgCommand pause = new ImgCommand(){
-		@Override
-		public void accept(Img i) {
-			//Do nothing.
-		}
-		
-		public void accept(Anm a) {
-			a.animate(false);
-		}
-	};
-	
-	private ImgCommand resume = new ImgCommand(){
-		@Override
-		public void accept(Img i) {
-			//Do nothing.
-		}
-		
-		public void accept(Anm a) {
-			a.animate(true);
-		}
-	};
+	private int direction = down;	
 
 	public ProtagonistTD() {
-		this.setImage(iDown);
+		this.setImage(prot[down][down]);
 	}
 
 	@Override
@@ -128,16 +104,16 @@ public class ProtagonistTD extends SimpleSolid implements Protagonist {
 
 		switch (direction) {
 		case up:
-			this.setImage(iUp);
+			this.setImage(prot[down][up]);
 			break;
 		case down:
-			this.setImage(iDown);
+			this.setImage(prot[down][down]);
 			break;
 		case left:
-			this.setImage(iLeft);
+			this.setImage(prot[down][left]);
 			break;
 		case right:
-			this.setImage(iRight);
+			this.setImage(prot[down][right]);
 			break;
 		}
 	}
