@@ -5,30 +5,26 @@ import objects.NPC;
 import player.DesktopListener;
 import player.ProtagonistSS;
 import player.ProtagonistTD;
-
-import test.testColor;
 import world.SimpleMap;
-import world.SimpleObject;
-import world.SimpleSolid;
 import world.SimpleWorld;
 
 import control.DesktopControl;
 import control.DeviceControl;
-import desktopView.ColorImg;
 import desktopView.DesktopCanvas;
 
 public class SpaceGame {
-	static int[][] map = { { 0, 0, 0, 0, 0, 0, 0, 0 }, { 0, 0, 0, 0, 0, 0, 0, 0 },
-			{ 0, 0, 0, 0, 0, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0, 0, 1 },
+	public static DesktopCanvas canvas = new DesktopCanvas(320, 320, "W00t");
+	public static int Orientation = 0;
+	static int[][] map = { { 0, 0, 0, 0, 0, 0, 0, 1 }, { 0, 0, 0, 0, 0, 1, 0, 1 },
+			{ 0, 0, 1, 0, 1, 0, 0, 0 }, { 1, 1, 1, 0, 1, 0, 0, 1 },
 			{ 0, 0, 0, 0, 0, 0, 1, 0 }, { 0, 0, 0, 0, 0, 1, 0, 0 },
 			{ 0, 0, 0, 1, 0, 0, 0, 0 }, { 1, 1, 1, 0, 1, 1, 1, 1 }, };
 
 	public static DeviceControl dc = DesktopControl.getInstance();
 
 	public static void main(String[] args) {
-		SimpleMap m = new SimpleMap(24, 20, 16, 16);
-		DesktopCanvas canvas = new DesktopCanvas(384, 320, "W00t");
-		ProtagonistTD p = new ProtagonistTD();
+		SimpleMap m = new SimpleMap(20, 20, 16, 16);
+		ProtagonistSS p = new ProtagonistSS();
 		DesktopListener dl = new DesktopListener(p);
 		dc.setCanvas(canvas);
 		m.addSimpleObject(p, 0, 0);
@@ -42,6 +38,6 @@ public class SpaceGame {
 
 		canvas.addKeyListener(dl);
 		SimpleWorld w = new SimpleWorld(m, dc);
-		w.start(false);
+		w.start(true);
 	}
 }
