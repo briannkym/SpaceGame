@@ -73,14 +73,12 @@ public class ProtagonistSS extends SimpleSolid implements Protagonist {
 			next_direction = direction;
 			if (hor_vel < 0) {
 				hor_vel = 0;
-				getImage().accept(pause);
 			}
 			break;
 		case sRight:
 			next_direction = direction;
 			if (hor_vel > 0) {
 				hor_vel = 0;
-				getImage().accept(pause);
 			}
 			break;
 		}
@@ -166,11 +164,12 @@ public class ProtagonistSS extends SimpleSolid implements Protagonist {
 		} else {
 			if (facing_right) {
 				setImage(prot[direction][right]);
-				getImage().accept(pause);
 			} else {
 				setImage(prot[direction][left]);
-				getImage().accept(pause);
 			}
+			
+			if(hor_vel == 0)
+			getImage().accept(pause);
 		}
 
 	}
