@@ -6,7 +6,9 @@ import player.DesktopListener;
 import player.ProtagonistSS;
 import player.ProtagonistTD;
 import world.SimpleMap;
+import world.SimpleMapIO;
 import world.SimpleWorld;
+import world.SimpleWorldFactory;
 
 import control.DesktopControl;
 import control.DeviceControl;
@@ -23,18 +25,21 @@ public class SpaceGame {
 	public static DeviceControl dc = DesktopControl.getInstance();
 
 	public static void main(String[] args) {
-		SimpleMap m = new SimpleMap(20, 20, 16, 16);
 		ProtagonistSS p = new ProtagonistSS();
 		DesktopListener dl = new DesktopListener(p);
 		dc.setCanvas(canvas);
+		
+		
+		SimpleWorldFactory swf = new SimpleWorldFactory();
+		swf.register(new BlackSolid());
+		SimpleMapIO mIO = new SimpleMapIO("test2.map", swf);
+		//mIO.openMap(false);
+		//mIO.writeMap(m);
+		mIO.openMap(true);
+		SimpleMap m = mIO.readMap();
+		mIO.closeMap();
 		m.addSimpleObject(p, 0, 0);
-		for (int y = 0; y < map.length; y++) {
-			for (int x = 0; x < map[y].length; x++) {
-				if (map[y][x] == 1){
-					m.addSimpleObject(new BlackSolid(), x*16, y*16);
-				}
-			}
-		}
+		
 
 		canvas.addKeyListener(dl);
 		SimpleWorld w = new SimpleWorld(m, dc);
